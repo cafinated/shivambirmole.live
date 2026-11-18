@@ -14,9 +14,11 @@ interface Props {
   description: string;
   /** Full-bleed pages lay out their own sheets, scene by scene. */
   bleed?: boolean;
+  /** The page opens on a full-screen photo: the masthead sits over it in light text. */
+  overlay?: boolean;
 }
 
-const { title, description, bleed = false } = Astro.props;
+const { title, description, bleed = false, overlay = false } = Astro.props;
 const fullTitle = title ? `${title} · ${site.name}` : `${site.name} · builder with a data-engineering foundation`;
 const path = Astro.url.pathname;
 const canonical = new URL(path, Astro.site);
@@ -48,7 +50,7 @@ const isCurrent = (href: string) => path === href || (href !== '/' && path.start
     <a class="skip" href="#main">Skip to the content</a>
     <div class="progress" aria-hidden="true"><span data-progress></span></div>
 
-    <div class="sheet">
+    <div class:list={['sheet', { 'masthead-wrap--overlay': overlay }]}>
       <header class="masthead">
         <a class="masthead__name" href="/" aria-current={path === '/' ? 'page' : undefined}>{site.name}</a>
         <nav aria-label="Main">

@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import Arrow from '../components/Arrow.astro';
 import Hero from '../components/scenes/Hero.astro';
+import PhotoHero from '../components/scenes/PhotoHero.astro';
 import ProductScene from '../components/scenes/ProductScene.astro';
 import LifeTrack from '../components/scenes/LifeTrack.astro';
 import PhotoPile from '../components/scenes/PhotoPile.astro';
@@ -17,8 +18,10 @@ const toys: Record<string, any> = { meddraft: MedDraftDemo, kuchu: KuchuToy, cen
 
 <Base
   bleed
+  overlay
   description="Shivam Birmole builds products for problems he has stood close to: a hospital's paperwork, faraway friends, a campus. Four years of data engineering underneath."
 >
+  <PhotoHero />
   <Hero />
 
   <section class="bridge" id="products">

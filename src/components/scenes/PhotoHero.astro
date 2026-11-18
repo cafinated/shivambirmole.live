@@ -1,0 +1,199 @@
+---
+// The photo opening. A short handwritten loader, then the snow-summit photo fills the screen
+// with the sunset low in the frame. Scrolling pans the photo up into the sky while stars come out,
+// then the page fades into the stone ground of the rest of the site.
+// Without JavaScript, or with reduced motion: no loader, a still photo, no stars.
+import { Image } from 'astro:assets';
+import scene from '../../assets/images/snow-summit.jpg';
+---
+
+<div class="pl" data-pl-loader aria-hidden="true">
+  <p class="pl__name">Shivam</p>
+  <div class="pl__bar">
+    <div class="pl__line"><span data-pl-line></span></div>
+    <span class="pl__pct" data-pl-pct>0%</span>
+  </div>
+</div>
+
+<section class="ph" data-ph aria-labelledby="ph-name">
+  <div class="ph__stage">
+    <Image
+      class="ph__photo"
+      src={scene}
+      alt="A person in a yellow hooded jacket setting up a tripod on a snowy summit as the sun sets over a hazy valley."
+      widths={[800, 1206]}
+      sizes="100vw"
+      loading="eager"
+      fetchpriority="high"
+      data-ph-photo
+    />
+    <canvas class="ph__stars" data-ph-stars aria-hidden="true"></canvas>
+    <div class="ph__dark" data-ph-dark aria-hidden="true"></div>
+    <div class="ph__shade" aria-hidden="true"></div>
+
+    <div class="sheet ph__copy">
+      <p class="ph__hi" data-ph-rise>Hello, I'm</p>
+      <h1 class="ph__name" id="ph-name" data-ph-rise>Shivam</h1>
+      <p class="ph__line" data-ph-rise>
+        Data engineer by training, founder by instinct.<br />I build products for problems I've stood close to.
+      </p>
+    </div>
+    <p class="ph__cue" aria-hidden="true">Scroll</p>
+  </div>
+  <div class="ph__fade" aria-hidden="true"></div>
+</section>
+
+<script>
+  import { animate, scroll } from 'motion';
+
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const ease = [0.16, 1, 0.3, 1] as const;
+  const clamp = (v: number) => Math.min(1, Math.max(0, v));
+  const span = (p: number, a: number, b: number) => clamp((p - a) / (b - a));
+  const smooth = (t: number) => t * t * (3 - 2 * t);
+
+  const hero = document.querySelector<HTMLElement>('[data-ph]');
+  const photo = document.querySelector<HTMLImageElement>('[data-ph-photo]');
+  const loader = document.querySelector<HTMLElement>('[data-pl-loader]');
+
+  if (hero && photo && loader) {
+    const rise = hero.querySelectorAll<HTMLElement>('[data-ph-rise]');
+
+    const reveal = () => {
+      if (still) return;
+      rise.forEach((el, i) =>
+        animate(el, { opacity: [0, 1], y: [24, 0], filter: ['blur(8px)', 'blur(0px)'] }, { duration: 1.1, delay: 0.1 + i * 0.12, ease }),
+      );
+    };
+
+    // ---------- Loader: short, once per visit ----------
+    let seen = false;
+    try {
+      seen = sessionStorage.getItem('photo-intro') === '1';
+    } catch {}
+
+    if (still || seen) {
+      loader.remove();
+      reveal();
+    } else {
+      document.documentElement.classList.add('is-loading');
+      rise.forEach((el) => (el.style.opacity = '0'));
+      const line = loader.querySelector<HTMLElement>('[data-pl-line]')!;
+      const pct = loader.querySelector<HTMLElement>('[data-pl-pct]')!;
+      let ready = photo.complete && photo.naturalWidth > 0;
+      photo.addEventListener('load', () => (ready = true), { once: true });
+      const started = performance.now();
+      let shown = 0;
+      const tick = () => {
+        const t = (performance.now() - started) / 1000;
+        // Creeps to 90% on its own and finishes once the photo is in. Never longer than 2.5s.
+        const target = ready || t > 2.5 ? 100 : Math.min(90, t * 70);
+        shown += (target - shown) * 0.12;
+        if (target === 100 && shown > 99.5) shown = 100;
+        line.style.transform = `scaleX(${shown / 100})`;
+        pct.textContent = `${Math.round(shown)}%`;
+        if (shown < 100) return void requestAnimationFrame(tick);
+        try {
+          sessionStorage.setItem('photo-intro', '1');
+        } catch {}
+        setTimeout(() => {
+          loader.classList.add('is-done');
+          document.documentElement.classList.remove('is-loading');
+          reveal();
+          setTimeout(() => loader.remove(), 800);
+        }, 200);
+      };
+      requestAnimationFrame(tick);
+    }
+
+    // ---------- Pan up into the sky as you scroll ----------
+    if (!still) {
+      hero.classList.add('is-live');
+      const stage = hero.querySelector<HTMLElement>('.ph__stage')!;
+      const dark = hero.querySelector<HTMLElement>('[data-ph-dark]')!;
+      const canvas = hero.querySelector<HTMLCanvasElement>('[data-ph-stars]')!;
+      const ctx = canvas.getContext('2d')!;
+      let W = 0;
+      let H = 0;
+      let travel = 0;
+      let horizon = 0;
+      let sky = 0;
+      let visible = true;
+      let stars: { x: number; y: number; r: number; tw: number; ph: number }[] = [];
+
+      const measure = () => {
+        const dpr = Math.min(2, devicePixelRatio || 1);
+        W = stage.clientWidth;
+        H = stage.clientHeight;
+        canvas.width = W * dpr;
+        canvas.height = H * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        // Tall enough to pan on every screen; on phones the sides are cropped instead.
+        const imgH = Math.max(H * 1.45, (W * photo.naturalHeight) / (photo.naturalWidth || 1));
+        photo.style.height = `${imgH}px`;
+        travel = imgH - H;
+        // Start with the sunset low in the frame, so the words sit on sky, not snow.
+        horizon = Math.min(travel, Math.max(0, imgH * 0.49 - H * 0.78));
+        const count = Math.round((W * H) / 5200);
+        stars = Array.from({ length: count }, () => ({
+          x: Math.random() * W,
+          y: Math.random() * H * 0.85,
+          r: Math.random() * 1.2 + 0.2,
+          tw: 0.6 + Math.random() * 2.4,
+          ph: Math.random() * Math.PI * 2,
+        }));
+      };
+
+      const place = (p: number) => {
+        const up = smooth(span(p, 0, 0.85));
+        photo.style.transform = `translate3d(0, ${-(horizon * (1 - up))}px, 0) scale(${1.06 - 0.06 * up})`;
+        dark.style.opacity = String(0.5 * up);
+        sky = up;
+      };
+
+      let shooting: { x: number; y: number; life: number } | null = null;
+      const draw = (t: number) => {
+        if (visible) {
+          ctx.clearRect(0, 0, W, H);
+          const base = 0.1 + 0.9 * sky;
+          ctx.fillStyle = '#f3ece2';
+          for (const s of stars) {
+            ctx.globalAlpha = base * (0.45 + 0.55 * Math.sin((t / 1000) * s.tw + s.ph) ** 2);
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          if (sky > 0.5) {
+            if (!shooting && Math.random() < 0.004) shooting = { x: W * (0.3 + Math.random() * 0.6), y: H * Math.random() * 0.3, life: 1 };
+            if (shooting) {
+              ctx.globalAlpha = shooting.life * sky;
+              ctx.strokeStyle = '#f3ece2';
+              ctx.lineWidth = 1.2;
+              ctx.beginPath();
+              ctx.moveTo(shooting.x, shooting.y);
+              ctx.lineTo(shooting.x + 72, shooting.y - 32);
+              ctx.stroke();
+              shooting.x -= 9;
+              shooting.y += 4;
+              shooting.life -= 0.02;
+              if (shooting.life <= 0) shooting = null;
+            }
+          }
+          ctx.globalAlpha = 1;
+        }
+        requestAnimationFrame(draw);
+      };
+
+      const start = () => {
+        measure();
+        place(0);
+        scroll((p: number) => place(p), { target: hero, offset: ['start start', 'end end'] });
+        new IntersectionObserver(([e]) => (visible = e.isIntersecting)).observe(hero);
+        requestAnimationFrame(draw);
+      };
+      if (photo.complete && photo.naturalWidth) start();
+      else photo.addEventListener('load', start, { once: true });
+      addEventListener('resize', measure);
+    }
+  }
+</script>

@@ -1468,3 +1468,237 @@
 .together-cta .closing__mail {
   display: inline-block;
 }
+
+/* ---------- Photo opening ---------- */
+
+.pl {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  align-content: center;
+  gap: 1rem;
+  padding-inline: clamp(1.25rem, 6vw, 6rem);
+  background: oklch(0.15 0.02 255);
+  color: oklch(0.93 0.02 80);
+  transition:
+    opacity 700ms var(--ease-out),
+    visibility 0s 700ms;
+}
+
+.pl__name {
+  font-family: var(--font-pen);
+  font-size: clamp(3rem, 2rem + 5vw, 6.5rem);
+  line-height: 1;
+}
+
+.pl__bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: min(22rem, 70vw);
+}
+
+.pl__line {
+  flex: 1;
+  height: 1px;
+  overflow: hidden;
+  background: oklch(0.93 0.02 80 / 0.2);
+}
+
+.pl__line span {
+  display: block;
+  height: 100%;
+  background: oklch(0.93 0.02 80);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+.pl__pct {
+  min-width: 3ch;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  color: oklch(0.7 0.02 80);
+}
+
+.pl.is-done {
+  opacity: 0;
+  visibility: hidden;
+}
+
+html:not(.js) .pl {
+  display: none;
+}
+
+html.is-loading {
+  overflow: hidden;
+}
+
+.ph {
+  position: relative;
+  color: oklch(0.95 0.015 80);
+  background: oklch(0.15 0.02 255);
+}
+
+.ph__stage {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+}
+
+.ph.is-live {
+  height: 190vh;
+}
+
+.ph.is-live .ph__stage {
+  position: sticky;
+  top: 0;
+}
+
+.ph__photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 42%;
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+.ph.is-live .ph__photo {
+  inset: 0 0 auto 0;
+}
+
+.ph__stars,
+.ph__dark,
+.ph__shade {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.ph__dark {
+  background: oklch(0.15 0.02 255);
+  opacity: 0;
+}
+
+.ph__shade {
+  background:
+    linear-gradient(to right, oklch(0.15 0.02 255 / 0.55), transparent 65%),
+    linear-gradient(to bottom, oklch(0.15 0.02 255 / 0.6), transparent 28%),
+    linear-gradient(to top, oklch(0.15 0.02 255 / 0.5), transparent 40%);
+}
+
+.ph__copy {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  align-content: center;
+  height: 100%;
+  padding-bottom: 12vh;
+}
+
+.ph__hi {
+  font-family: var(--font-pen);
+  font-size: clamp(1.4rem, 1rem + 1.5vw, 2.2rem);
+  line-height: 1.2;
+}
+
+.ph__name {
+  margin: 0;
+  font-family: var(--font-pen);
+  font-weight: 400;
+  font-size: clamp(4rem, 2rem + 9vw, 9.5rem);
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+
+.ph__line {
+  margin-top: 1.25rem;
+  max-width: 34ch;
+  font-family: var(--font-pen);
+  font-size: clamp(1.15rem, 0.9rem + 1vw, 1.7rem);
+  line-height: 1.45;
+}
+
+.ph__cue {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: 1.5rem;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: oklch(0.8 0.02 80);
+}
+
+.ph__cue::after {
+  content: '';
+  display: block;
+  width: 1px;
+  height: 2.5rem;
+  margin: 0.6rem auto 0;
+  background: linear-gradient(oklch(0.8 0.02 80), transparent);
+  transform-origin: top;
+  animation: ph-cue 2.2s var(--ease-out) infinite;
+}
+
+@keyframes ph-cue {
+  0% {
+    transform: scaleY(0);
+  }
+
+  50% {
+    transform: scaleY(1);
+  }
+
+  100% {
+    transform: scaleY(1);
+    opacity: 0;
+  }
+}
+
+/* The night fades into the stone ground of the rest of the page. */
+.ph__fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  height: 45vh;
+  background: linear-gradient(to bottom, transparent, var(--paper) 92%);
+  pointer-events: none;
+}
+
+.ph:not(.is-live) .ph__fade {
+  height: 20vh;
+}
+
+/* The masthead sits over the photo in light text. */
+.masthead-wrap--overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+}
+
+.masthead-wrap--overlay .masthead {
+  border-bottom-color: oklch(0.95 0.015 80 / 0.25);
+  color: oklch(0.95 0.015 80);
+}
+
+.masthead-wrap--overlay :focus-visible {
+  outline-color: oklch(0.95 0.015 80);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ph__cue::after {
+    animation: none;
+  }
+}
