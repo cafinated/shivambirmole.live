@@ -4,7 +4,7 @@ export const site = {
   tagline: 'I build things for problems I have stood close enough to notice.',
   email: 'opticalfusion9@gmail.com',
   github: 'https://github.com/cafinated',
-  linkedin: 'https://linkedin.com/in/shivam-birmole',
+  linkedin: 'https://www.linkedin.com/in/shivam-birmole',
 };
 
 export const nav = [
