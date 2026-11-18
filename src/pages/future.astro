@@ -9,22 +9,28 @@ import { site } from '../data/site';
 >
   <header class="page-head">
     <h1>Let's build something together.</h1>
-    <p class="lede">I want to keep building. If you have a problem worth fixing, I'd like to hear it.</p>
+    <p class="lede">Healthcare, tech and travel are where I want to build next. If you have something in mind, or just want to think something through, I'd like to hear it.</p>
   </header>
 
   <section class="section" aria-labelledby="want-title">
-    <h2 id="want-title">What I'm looking for</h2>
-    <div class="prose">
-      <p>
-        I work best on problems I can stand close to. A hospital's paperwork, a campus group chat, friends who live in
-        different cities. The people have a real problem, and I can watch them work around it before I build anything.
-      </p>
-      <p>
-        So I'm interested in healthcare operations, tools for communities, and anything with messy data that someone has
-        to trust. I'm also open to founder's-office roles where an idea needs someone to structure it and take it to
-        something running.
-      </p>
-    </div>
+    <h2 id="want-title">What I want to build</h2>
+    <ul class="line">
+      <li><span class="when">Healthcare</span><div>Where I grew up around the problems, and where MedDraft came from.</div></li>
+      <li><span class="when">Tech</span><div>Tools and products that take something messy and make it work for people.</div></li>
+      <li><span class="when">Travel</span><div>15+ countries in, I keep noticing what could be easier on the road.</div></li>
+    </ul>
+    <p class="measure" style="margin-top: var(--space-5)">
+      Those are the three I care about most. If you're working on something else, hit me up anyway. I'm also open to
+      founder's-office roles where an idea needs someone to structure it and take it to something running.
+    </p>
+  </section>
+
+  <section class="section" aria-labelledby="think-title">
+    <h2 id="think-title">Or just brainstorm with me</h2>
+    <p class="measure" style="margin-top: var(--space-4)">
+      I like thinking problems through out loud. If you have an idea you want to pressure-test, or just want to talk
+      something over, write to me. No pitch needed.
+    </p>
   </section>
 
   <section class="section" aria-labelledby="bring-title">
@@ -44,6 +50,7 @@ import { site } from '../data/site';
       <legend class="visually-hidden">What kind of message is it?</legend>
       <button class="chip" type="button" aria-pressed="true" data-kind="idea" data-subject="An idea to build together" data-body="Hi Shivam,%0D%0A%0D%0AHere is the problem I keep running into:%0D%0A%0D%0A">I have a problem to solve</button>
       <button class="chip" type="button" aria-pressed="false" data-kind="role" data-subject="A founder's-office role" data-body="Hi Shivam,%0D%0A%0D%0AWe are looking for someone to:%0D%0A%0D%0A">I'm hiring</button>
+      <button class="chip" type="button" aria-pressed="false" data-kind="brainstorm" data-subject="Want to brainstorm something?" data-body="Hi Shivam,%0D%0A%0D%0AHere is what I have been thinking about:%0D%0A%0D%0A">Let's brainstorm</button>
       <button class="chip" type="button" aria-pressed="false" data-kind="team" data-subject="Building something together" data-body="Hi Shivam,%0D%0A%0D%0AI am working on:%0D%0A%0D%0AI would like help with:%0D%0A%0D%0A">I'm building something</button>
     </fieldset>
     <p class="together-cta">
