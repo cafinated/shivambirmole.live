@@ -1,6 +1,6 @@
 ---
 // Where the habit comes from. A pinned scene on black: vertical scrolling carries one line
-// sideways through five stops, the way an argument is carried across a flow sheet.
+// sideways through five stops, most recent first, the way an argument is carried across a flow sheet.
 // The data stop runs a small canvas: scattered marks pass through a pipeline and come out in rows.
 // Without JavaScript, or with reduced motion, the stops stack vertically.
 import { Image } from 'astro:assets';
@@ -13,35 +13,25 @@ import portrait from '../../assets/images/portrait.jpg';
   <div class="life__stage">
     <div class="life__track" data-track>
       <article class="stop stop--intro">
-        <h2 id="life-title">Before the products there was a counter, a ward and a pipeline.</h2>
+        <h2 id="life-title">How I got here, most recent first.</h2>
         <p class="pen stop__cue">keep scrolling, it goes sideways</p>
       </article>
 
       <article class="stop stop--photo">
         <figure class="photo">
           <Image
-            src={cafeMenu}
-            alt="Two hand-lettered chalkboards from Café 101. The menu lists sandwiches, paneer barbeque, cakes and tarts, cold and hot drinks, four kinds of Maggi and a Maggizza."
-            widths={[420, 840]}
-            sizes="(min-width: 60rem) 24rem, 70vw"
+            src={portrait}
+            alt="Shivam Birmole, bearded, in a light grey suit, standing with his hands clasped and smiling."
+            widths={[360, 720]}
+            sizes="(min-width: 60rem) 20rem, 60vw"
           />
         </figure>
         <div>
-          <p class="stop__when pen">2018, Kankavli</p>
-          <h3>I opened a café at eighteen.</h3>
-          <p>With my own money, right after Class XII. I wrote the menu, worked the counter and kept the accounts.</p>
-          <a class="go" href="/work/cafe-101/">The café story <Arrow /></a>
+          <p class="stop__when pen">2026 on, Masters' Union</p>
+          <h3>Now I build products. And I am still building.</h3>
+          <p>Post Graduate Programme in Technology & Business Management, with three products shipped alongside it.</p>
+          <a class="go" href="/work/">All the work <Arrow /></a>
         </div>
-      </article>
-
-      <article class="stop">
-        <p class="stop__when pen">2018 to 2022, Mumbai</p>
-        <h3>Computer engineering, and a debate society.</h3>
-        <p>
-          A B.Tech at NMIMS. I chaired the NM Debate Society, more than 200 debaters, which is where I learned to lay a
-          problem out in columns before arguing about it.
-        </p>
-        <a class="go" href="/about/">More about me <Arrow /></a>
       </article>
 
       <article class="stop stop--wide">
@@ -68,20 +58,30 @@ import portrait from '../../assets/images/portrait.jpg';
         <a class="go" href="/work/hospital-operations/">What I changed <Arrow /></a>
       </article>
 
+      <article class="stop">
+        <p class="stop__when pen">2018 to 2022, Mumbai</p>
+        <h3>Computer engineering, and a debate society.</h3>
+        <p>
+          A B.Tech at NMIMS. I chaired the NM Debate Society, more than 200 debaters, which is where I learned to lay a
+          problem out in columns before arguing about it.
+        </p>
+        <a class="go" href="/about/">More about me <Arrow /></a>
+      </article>
+
       <article class="stop stop--photo stop--last">
         <figure class="photo">
           <Image
-            src={portrait}
-            alt="Shivam Birmole, bearded, in a light grey suit, standing with his hands clasped and smiling."
-            widths={[360, 720]}
-            sizes="(min-width: 60rem) 20rem, 60vw"
+            src={cafeMenu}
+            alt="Two hand-lettered chalkboards from Café 101. The menu lists sandwiches, paneer barbeque, cakes and tarts, cold and hot drinks, four kinds of Maggi and a Maggizza."
+            widths={[420, 840]}
+            sizes="(min-width: 60rem) 24rem, 70vw"
           />
         </figure>
         <div>
-          <p class="stop__when pen">2026 on, Masters' Union</p>
-          <h3>Now I build products. And I am still building.</h3>
-          <p>Post Graduate Programme in Technology & Business Management, with three products shipped alongside it.</p>
-          <a class="go" href="/work/">All the work <Arrow /></a>
+          <p class="stop__when pen">2018, Kankavli</p>
+          <h3>Where it started: a small café.</h3>
+          <p>With my own money, right after Class XII. I wrote the menu, worked the counter and kept the accounts.</p>
+          <a class="go" href="/work/cafe-101/">The café story <Arrow /></a>
         </div>
       </article>
     </div>

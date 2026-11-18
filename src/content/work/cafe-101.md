@@ -2,7 +2,7 @@
 title: Café 101
 lede: A café I opened in Kankavli at eighteen, with my own money, right after Class XII.
 description: Café 101 in Kankavli, 2018. A self-funded café Shivam Birmole started and ran after Class XII.
-order: 5
+order: 6
 kind: experience
 years: "2018"
 stage: Ran for a few months in 2018. Closed.

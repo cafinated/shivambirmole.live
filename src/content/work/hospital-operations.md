@@ -2,7 +2,7 @@
 title: Hospital operations
 lede: Schedules, maintenance and money at my family's hospital, and the systems I built around them.
 description: Operations work at a family hospital. Staff scheduling, maintenance tracking, financial tracking, patient handoffs and the hospital website.
-order: 4
+order: 5
 kind: experience
 years: Ongoing
 stage: Changes made on the ground. Results not published here.

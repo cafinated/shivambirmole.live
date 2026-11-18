@@ -1,7 +1,6 @@
 ---
-// Real photographs as a deck. Press the deck or the button and the top photo slides off
-// and goes to the back. Works with a mouse, a finger and a keyboard.
-// To add photos later, add entries to `photos` below.
+// Real photographs as one collage, all visible at once, no captions.
+// Each photo has a slot (`area`) in the grid; add photos by adding entries and a slot in scenes.css.
 import { Image } from 'astro:assets';
 import vietnam from '../../assets/images/travel-vietnam.jpg';
 import rappel from '../../assets/images/waterfall-rappel.jpg';
@@ -11,110 +10,45 @@ import sea from '../../assets/images/sea-swim.jpg';
 import sheep from '../../assets/images/valley-sheep.jpg';
 import pillars from '../../assets/images/forest-pillars.jpg';
 
-// Captions name no places on purpose: add them once confirmed.
 const photos = [
-  {
-    src: snow,
-    alt: 'A person in a yellow hooded jacket setting up a tripod on a snowy summit, with an orange horizon and haze over the valley below.',
-    caption: 'On a snowy summit, setting up the shot as the light goes.',
-  },
-  {
-    src: sea,
-    alt: 'A person floating on their back in clear turquoise water, with sailboats anchored behind and pine-covered islands on the horizon.',
-    caption: 'Floating in water this clear, between anchored sailboats.',
-  },
-  {
-    src: pillars,
-    alt: 'A person with a backpack walking a stone path through green forest towards tall sandstone pillars in the mist.',
-    caption: 'A forest trail under sandstone pillars.',
-  },
-  {
-    src: bike,
-    alt: 'A loaded motorcycle parked at dusk beside a small brick building, with hills and an orange sky behind it.',
-    caption: 'The bike, parked at dusk somewhere in the hills.',
-  },
-  {
-    src: sheep,
-    alt: 'Two sheep, one white and one black, grazing on a green slope above a valley thick with pine trees.',
-    caption: 'Two sheep and a valley full of pines.',
-  },
-  {
-    src: vietnam,
-    alt: 'Three travellers sitting on parked scooters on a gravel shore in Vietnam, with green limestone hills and still water behind them.',
-    caption: 'Vietnam, by scooter, between the limestone hills.',
-  },
-  {
-    src: rappel,
-    alt: 'Shivam in an orange helmet and a red life vest, leaning back on a rope as he rappels down a waterfall, with forest behind him.',
-    caption: 'Halfway down a waterfall, on a rope.',
-  },
+  { src: snow, area: 'snow', alt: 'A person in a yellow hooded jacket setting up a tripod on a snowy summit, with an orange horizon and haze over the valley below.' },
+  { src: sea, area: 'sea', alt: 'A person floating on their back in clear turquoise water, with sailboats anchored behind and pine-covered islands on the horizon.' },
+  { src: vietnam, area: 'vietnam', alt: 'Three travellers sitting on parked scooters on a gravel shore in Vietnam, with green limestone hills and still water behind them.' },
+  { src: sheep, area: 'sheep', alt: 'Two sheep, one white and one black, grazing on a green slope above a valley thick with pine trees.' },
+  { src: rappel, area: 'rappel', alt: 'Shivam in an orange helmet and a red life vest, leaning back on a rope as he rappels down a waterfall, with forest behind him.' },
+  { src: pillars, area: 'pillars', alt: 'A person with a backpack walking a stone path through green forest towards tall sandstone pillars in the mist.' },
+  { src: bike, area: 'bike', alt: 'A loaded motorcycle parked at dusk beside a small brick building, with hills and an orange sky behind it.' },
 ];
 ---
 
-<div class="deck" data-deck>
-  <div class="deck__stack" data-stack>
-    {
-      photos.map((p) => (
-        <figure class="deck__card" data-card>
-          <Image src={p.src} alt={p.alt} widths={[640, 1280]} sizes="(min-width: 48rem) 40rem, 86vw" loading="eager" draggable="false" />
-          <figcaption>{p.caption}</figcaption>
-        </figure>
-      ))
-    }
-  </div>
-  <div class="deck__bar">
-    <p class="pen" data-count aria-live="polite">1 of {photos.length}</p>
-    <button class="sim__btn" type="button" data-next>Next photo</button>
-  </div>
+<div class="collage" data-collage>
+  {
+    photos.map((p) => (
+      <figure class={`collage__item collage__item--${p.area}`} data-photo>
+        <Image src={p.src} alt={p.alt} widths={[480, 960]} sizes="(min-width: 60rem) 28vw, 50vw" />
+      </figure>
+    ))
+  }
 </div>
 
 <script>
+  import { animate, inView, stagger } from 'motion';
   import { reduceMotion } from '../../scripts/motion-utils';
 
-  document.querySelectorAll<HTMLElement>('[data-deck]').forEach((deck) => {
-    const stack = deck.querySelector<HTMLElement>('[data-stack]')!;
-    const cards = [...deck.querySelectorAll<HTMLElement>('[data-card]')];
-    const next = deck.querySelector<HTMLButtonElement>('[data-next]')!;
-    const count = deck.querySelector<HTMLElement>('[data-count]')!;
-    if (cards.length < 2) {
-      next.hidden = true;
-      return;
-    }
-
-    deck.classList.add('is-live');
-    const order = cards.map((_, i) => i);
-    let shown = 0;
-    let busy = false;
-
-    const layout = () => {
-      cards.forEach((card, i) => {
-        const depth = order.indexOf(i);
-        const tilt = depth === 0 ? -1.5 : depth % 2 ? 4 : -4;
-        card.style.zIndex = String(cards.length - depth);
-        card.style.transform = `translate(-50%, -50%) translate(${depth * 20}px, ${depth * -14}px) rotate(${tilt}deg) scale(${1 - depth * 0.05})`;
-        card.style.opacity = depth > 3 ? '0' : '1';
-        card.setAttribute('aria-hidden', String(depth !== 0));
-      });
-      count.textContent = `${shown + 1} of ${cards.length}`;
-    };
-
-    const advance = () => {
-      if (busy) return;
-      busy = true;
-      const top = cards[order[0]];
-      const settle = () => {
-        order.push(order.shift()!);
-        shown = (shown + 1) % cards.length;
-        layout();
-        busy = false;
-      };
-      if (reduceMotion()) return settle();
-      top.style.transform = 'translate(-50%, -50%) translate(115%, -6%) rotate(16deg)';
-      setTimeout(settle, 360);
-    };
-
-    layout();
-    next.addEventListener('click', advance);
-    stack.addEventListener('click', advance);
+  document.querySelectorAll<HTMLElement>('[data-collage]').forEach((collage) => {
+    if (reduceMotion()) return;
+    const items = collage.querySelectorAll<HTMLElement>('[data-photo]');
+    items.forEach((el) => (el.style.opacity = '0'));
+    inView(
+      collage,
+      () => {
+        animate(
+          items,
+          { opacity: [0, 1], scale: [0.92, 1], clipPath: ['inset(12% 12% 12% 12% round 6px)', 'inset(0% 0% 0% 0% round 6px)'] },
+          { duration: 0.9, delay: stagger(0.08), ease: [0.16, 1, 0.3, 1] },
+        );
+      },
+      { amount: 0.1 },
+    );
   });
 </script>

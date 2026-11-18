@@ -5,7 +5,6 @@ import Arrow from '../components/Arrow.astro';
 import Hero from '../components/scenes/Hero.astro';
 import ProductScene from '../components/scenes/ProductScene.astro';
 import LifeTrack from '../components/scenes/LifeTrack.astro';
-import Chalkboard from '../components/scenes/Chalkboard.astro';
 import PhotoPile from '../components/scenes/PhotoPile.astro';
 import MedDraftDemo from '../components/toys/MedDraftDemo.astro';
 import KuchuToy from '../components/toys/KuchuToy.astro';
@@ -25,8 +24,9 @@ const toys: Record<string, any> = { meddraft: MedDraftDemo, kuchu: KuchuToy, cen
   <section class="bridge" id="products">
     <div class="sheet">
       <p class="bridge__text" data-reveal>
-        I'm Shivam Birmole. I ran a café at eighteen, spent four years as a data engineer, and have worked on the
-        day-to-day running of my family's hospital. Each of the three things below started as something I watched
+        I'm Shivam Birmole. I think like a founder: find a problem worth fixing, then take it all the way to something
+        people can use. Four years as a data engineer taught me to build things people can trust, and my family's
+        hospital taught me how operations really run. Each of the three things below started as something I watched
         people work around. <strong>You can play with all of them.</strong>
       </p>
       <p class="flow-key" data-reveal>
@@ -48,24 +48,6 @@ const toys: Record<string, any> = { meddraft: MedDraftDemo, kuchu: KuchuToy, cen
   }
 
   <LifeTrack />
-
-  <section class="board-scene on-ink" aria-labelledby="board-title">
-    <div class="sheet">
-      <div class="board-scene__grid">
-        <div data-reveal>
-          <h2 id="board-title">The café closed. The board is still up.</h2>
-          <p>
-            Café 101 had a hand-lettered chalkboard menu, Maggizza included. This one is yours. Write on it with a mouse
-            or a finger.
-          </p>
-          <a class="go" href="/work/cafe-101/">See the real menu <Arrow /></a>
-        </div>
-        <div data-reveal>
-          <Chalkboard />
-        </div>
-      </div>
-    </div>
-  </section>
 
   <section class="away" aria-labelledby="away-title">
     <div class="sheet">

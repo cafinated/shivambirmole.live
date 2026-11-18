@@ -2,7 +2,7 @@
 title: Four years of data work
 lede: Pipelines, dashboards and reporting at TresVista, across investment data, banking and fund performance.
 description: Shivam Birmole's work as an Associate at TresVista Analytics LLP, 2022 to 2026. Data engineering and analytics across investment data, fraud and marketing analytics, and fund reporting.
-order: 6
+order: 4
 kind: experience
 years: 2022–2026
 stage: Associate, TresVista Analytics LLP. June 2022 to April 2026.
