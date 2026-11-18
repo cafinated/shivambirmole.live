@@ -5,8 +5,39 @@
 import { Image } from 'astro:assets';
 import vietnam from '../../assets/images/travel-vietnam.jpg';
 import rappel from '../../assets/images/waterfall-rappel.jpg';
+import snow from '../../assets/images/snow-summit.jpg';
+import bike from '../../assets/images/bike-dusk.jpg';
+import sea from '../../assets/images/sea-swim.jpg';
+import sheep from '../../assets/images/valley-sheep.jpg';
+import pillars from '../../assets/images/forest-pillars.jpg';
 
+// Captions name no places on purpose: add them once confirmed.
 const photos = [
+  {
+    src: snow,
+    alt: 'A person in a yellow hooded jacket setting up a tripod on a snowy summit, with an orange horizon and haze over the valley below.',
+    caption: 'On a snowy summit, setting up the shot as the light goes.',
+  },
+  {
+    src: sea,
+    alt: 'A person floating on their back in clear turquoise water, with sailboats anchored behind and pine-covered islands on the horizon.',
+    caption: 'Floating in water this clear, between anchored sailboats.',
+  },
+  {
+    src: pillars,
+    alt: 'A person with a backpack walking a stone path through green forest towards tall sandstone pillars in the mist.',
+    caption: 'A forest trail under sandstone pillars.',
+  },
+  {
+    src: bike,
+    alt: 'A loaded motorcycle parked at dusk beside a small brick building, with hills and an orange sky behind it.',
+    caption: 'The bike, parked at dusk somewhere in the hills.',
+  },
+  {
+    src: sheep,
+    alt: 'Two sheep, one white and one black, grazing on a green slope above a valley thick with pine trees.',
+    caption: 'Two sheep and a valley full of pines.',
+  },
   {
     src: vietnam,
     alt: 'Three travellers sitting on parked scooters on a gravel shore in Vietnam, with green limestone hills and still water behind them.',
@@ -25,7 +56,7 @@ const photos = [
     {
       photos.map((p) => (
         <figure class="deck__card" data-card>
-          <Image src={p.src} alt={p.alt} widths={[640, 1280]} sizes="(min-width: 48rem) 40rem, 86vw" draggable="false" />
+          <Image src={p.src} alt={p.alt} widths={[640, 1280]} sizes="(min-width: 48rem) 40rem, 86vw" loading="eager" draggable="false" />
           <figcaption>{p.caption}</figcaption>
         </figure>
       ))

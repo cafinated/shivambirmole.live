@@ -1301,7 +1301,7 @@
 .deck.is-live .deck__stack {
   position: relative;
   display: block;
-  height: min(62vh, 30rem);
+  height: min(76vh, 40rem);
   cursor: pointer;
 }
 
@@ -1317,8 +1317,10 @@
 }
 
 .deck.is-live .deck__card img {
-  max-height: calc(min(62vh, 30rem) - 6rem);
+  height: calc(min(76vh, 40rem) - 6rem);
+  width: auto;
   max-width: min(78vw, 44rem);
+  object-fit: cover;
 }
 
 .deck.is-live .deck__bar {
