@@ -24,7 +24,7 @@ Then open http://localhost:4321.
 
 The site is hosted on GitHub Pages at https://shivambirmole.live.
 
-Every push to `main` builds and deploys it automatically (`.github/workflows/deploy.yml`). The custom domain is set by `public/CNAME`.
+To publish changes, run `npm run deploy`. It builds the site and pushes `dist/` to the `gh-pages` branch, which GitHub Pages serves. The custom domain is set by `public/CNAME`.
 
 DNS at name.com:
 
