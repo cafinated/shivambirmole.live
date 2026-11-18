@@ -1,0 +1,128 @@
+---
+// A sketch of Kuchu Puchu's idea, drawn for this site: pick a gesture and a small character
+// walks onto a friend's desktop, acts it out, and tucks back into the corner.
+// The character here is my own drawing, not one from the product.
+const gestures = [
+  { key: 'hello', label: 'Hello', says: 'hello, you!' },
+  { key: 'hug', label: 'Big hug', says: 'big hug, delivered' },
+  { key: 'coffee', label: 'Coffee break', says: 'coffee break?' },
+  { key: 'night', label: 'Goodnight', says: 'goodnight' },
+];
+---
+
+<div class="toy">
+  <div class="pal" data-pal>
+    <p class="pal__bar"><span>A friend's desktop, somewhere far away</span><span>Sketch of the idea</span></p>
+    <div class="pal__desk" data-desk>
+      <div class="pal__window" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      <div class="pal__window pal__window--b" aria-hidden="true"><i></i><i></i></div>
+      <p class="pal__bubble pen" data-bubble role="status"></p>
+      <div class="pal__char" data-char aria-hidden="true">
+        <svg viewBox="0 0 120 150" width="120" height="150" focusable="false">
+          <g class="pal__leg pal__leg--l"><path d="M48 108v24" /></g>
+          <g class="pal__leg pal__leg--r"><path d="M72 108v24" /></g>
+          <g class="pal__arm pal__arm--l" data-arm-l><path d="M33 76 16 92" /></g>
+          <g class="pal__arm pal__arm--r" data-arm-r>
+            <path d="M87 76l17 16" />
+            <g class="pal__cup" data-cup><path d="M98 84h13v11a4 4 0 0 1-4 4h-5a4 4 0 0 1-4-4z" /><path d="M111 87c4 0 4 7 0 7" /></g>
+          </g>
+          <rect class="pal__body" x="29" y="40" width="62" height="70" rx="30" />
+          <g class="pal__eyes" data-eyes><circle cx="50" cy="68" r="4" /><circle cx="70" cy="68" r="4" /></g>
+          <path class="pal__smile" d="M51 82c5 6 13 6 18 0" />
+          <path class="pal__heart" data-heart d="M60 30c-9-9-20 2-10 11l10 9 10-9c10-9-1-20-10-11z" />
+          <text class="pal__zzz" data-zzz x="88" y="34">z z</text>
+        </svg>
+      </div>
+    </div>
+    <div class="pal__keys" role="group" aria-label="Send a gesture">
+      {
+        gestures.map((g) => (
+          <button type="button" class="pal__key" data-gesture={g.key} data-says={g.says}>
+            {g.label}
+          </button>
+        ))
+      }
+    </div>
+  </div>
+  <p class="toy__note">
+    Press a gesture. This little one is my own drawing for this page. The real characters, Sparks and the Couch are at{' '}
+    <a href="https://kuchupuchu.me/">kuchupuchu.me</a>.
+  </p>
+</div>
+
+<script>
+  import { animate } from 'motion';
+  import { reduceMotion, done, wait } from '../../scripts/motion-utils';
+
+  document.querySelectorAll<HTMLElement>('[data-pal]').forEach((pal) => {
+    const desk = pal.querySelector<HTMLElement>('[data-desk]')!;
+    const char = pal.querySelector<HTMLElement>('[data-char]')!;
+    const bubble = pal.querySelector<HTMLElement>('[data-bubble]')!;
+    const armL = pal.querySelector<SVGGElement>('[data-arm-l]')!;
+    const armR = pal.querySelector<SVGGElement>('[data-arm-r]')!;
+    const eyes = pal.querySelector<SVGGElement>('[data-eyes]')!;
+    const cup = pal.querySelector<SVGGElement>('[data-cup]')!;
+    const heart = pal.querySelector<SVGPathElement>('[data-heart]')!;
+    const zzz = pal.querySelector<SVGTextElement>('[data-zzz]')!;
+    const keys = [...pal.querySelectorAll<HTMLButtonElement>('[data-gesture]')];
+    let busy = false;
+
+    const corner = () => desk.clientWidth / 2 - 80;
+    const rest = () => animate(char, { x: corner(), y: 46, rotate: 8 }, { duration: 0 });
+    rest();
+    window.addEventListener('resize', () => {
+      if (!busy) rest();
+    });
+
+    const say = (text: string) => {
+      bubble.textContent = text;
+      bubble.classList.toggle('is-on', text !== '');
+    };
+
+    const acts: Record<string, (fast: boolean) => Promise<void>> = {
+      hello: async (fast) => {
+        await done(animate(armR, { rotate: [0, -125, -85, -125, -85, -125, 0] }, { duration: fast ? 0 : 1.5 }));
+      },
+      hug: async (fast) => {
+        animate(heart, { opacity: [0, 1, 1, 0], y: [8, -6, -10, -18], scale: [0.6, 1.1, 1, 1] }, { duration: fast ? 0 : 1.6 });
+        animate(armL, { rotate: [0, 70, 70, 0] }, { duration: fast ? 0 : 1.6 });
+        animate(armR, { rotate: [0, -70, -70, 0] }, { duration: fast ? 0 : 1.6 });
+        await done(animate(char, { scale: [1, 1.12, 1.12, 1] }, { duration: fast ? 0 : 1.6 }));
+      },
+      coffee: async (fast) => {
+        animate(cup, { opacity: 1 }, { duration: 0.2 });
+        await done(animate(armR, { rotate: [0, -48, -30, -48, -30, 0] }, { duration: fast ? 0 : 1.8 }));
+        animate(cup, { opacity: 0 }, { duration: 0.2 });
+      },
+      night: async (fast) => {
+        animate(eyes, { scaleY: 0.12 }, { duration: 0.2 });
+        animate(zzz, { opacity: [0, 1, 1, 0], y: [0, -8, -14, -22] }, { duration: fast ? 0 : 1.8 });
+        await done(animate(char, { rotate: [0, -5, 4, -5, 0] }, { duration: fast ? 0 : 1.8 }));
+        animate(eyes, { scaleY: 1 }, { duration: 0.2 });
+      },
+    };
+
+    const send = async (key: string, says: string) => {
+      if (busy) return;
+      busy = true;
+      const fast = reduceMotion();
+      keys.forEach((k) => (k.disabled = true));
+
+      char.classList.add('is-walking');
+      await done(animate(char, { x: 0, y: 0, rotate: 0 }, { duration: fast ? 0 : 0.9, ease: [0.3, 0.7, 0.3, 1] }));
+      char.classList.remove('is-walking');
+      say(says);
+      await acts[key](fast);
+      await wait(fast ? 1400 : 500);
+      say('');
+      char.classList.add('is-walking');
+      await done(animate(char, { x: corner(), y: 46, rotate: 8 }, { duration: fast ? 0 : 0.9, ease: [0.3, 0.7, 0.3, 1] }));
+      char.classList.remove('is-walking');
+
+      keys.forEach((k) => (k.disabled = false));
+      busy = false;
+    };
+
+    keys.forEach((k) => k.addEventListener('click', () => send(k.dataset.gesture!, k.dataset.says!)));
+  });
+</script>

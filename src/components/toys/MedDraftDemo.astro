@@ -1,0 +1,171 @@
+---
+// A playable simulation of MedDraft's core idea. Press play: the dictation is heard word by word,
+// each value lands in the form with the words behind it inked in, the gap stays blank in red,
+// and the doctor's approval stamps the draft.
+// The patient and the dictation are invented. No real records, no live AI.
+const fields = [
+  { key: 'complaint', label: 'Complaint', value: 'Fever for two days, with cough' },
+  { key: 'bp', label: 'Blood pressure', value: '130 / 80' },
+  { key: 'temp', label: 'Temperature', value: 'Not dictated. Left blank for the doctor.', gap: true },
+  { key: 'rx', label: 'Prescription', value: 'Paracetamol 500 mg, three times a day, five days' },
+];
+---
+
+<div class="toy">
+  <section class="sim" aria-label="MedDraft simulation" data-sim>
+    <p class="sim__bar">
+      <span>Simulation: how a draft shows its sources</span>
+      <span>Invented patient. Not a MedDraft screen.</span>
+    </p>
+    <div class="sim__panes">
+      <div class="sim__pane">
+        <div class="sim__pane-head">
+          <h3>What the doctor said</h3>
+          <span class="sim__wave" data-wave aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        </div>
+        <p class="sim__said" lang="mr">
+          <span data-ev="complaint">पेशंटला दोन दिवसांपासून ताप आहे, cough भी है.</span>{' '}
+          <span data-ev="bp">BP one-thirty over eighty.</span>{' '}
+          <span data-ev="rx">Paracetamol 500, दिवसातून तीन वेळा, five days.</span>
+        </p>
+      </div>
+      <div class="sim__pane">
+        <h3>What the form holds</h3>
+        <ul class="sim__fields">
+          {
+            fields.map((f) => (
+              <li>
+                <button class:list={['sim__field', { 'is-gap': f.gap }]} type="button" data-field={f.key} aria-pressed="false">
+                  <dfn>{f.label}</dfn>
+                  <b>{f.value}</b>
+                </button>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+    <div class="sim__foot">
+      <p class="sim__status" role="status" data-status>Draft. Waiting for a doctor.</p>
+      <div class="sim__actions">
+        <button class="sim__btn" type="button" data-play>Play the dictation</button>
+        <button class="sim__btn sim__btn--solid" type="button" aria-pressed="false" data-approve>Approve as the doctor</button>
+      </div>
+      <span class="sim__stamp" data-stamp aria-hidden="true">Approved</span>
+    </div>
+  </section>
+  <p class="toy__note">
+    Point at a field, or tab to it, to see the words behind it. The dictation mixes Marathi, Hindi and English on
+    purpose. Roughly: “The patient has had a fever for two days, and a cough. BP 130 over 80. Paracetamol 500, three
+    times a day, five days.”
+  </p>
+</div>
+
+<script>
+  import { animate, inView } from 'motion';
+  import { reduceMotion, wait } from '../../scripts/motion-utils';
+
+  document.querySelectorAll<HTMLElement>('[data-sim]').forEach((sim) => {
+    const fields = [...sim.querySelectorAll<HTMLButtonElement>('[data-field]')];
+    const spans = [...sim.querySelectorAll<HTMLElement>('[data-ev]')];
+    const status = sim.querySelector<HTMLElement>('[data-status]')!;
+    const approve = sim.querySelector<HTMLButtonElement>('[data-approve]')!;
+    const play = sim.querySelector<HTMLButtonElement>('[data-play]')!;
+    const stamp = sim.querySelector<HTMLElement>('[data-stamp]')!;
+    const wave = sim.querySelector<HTMLElement>('[data-wave]')!;
+    let pinned: string | null = null;
+    let run = 0;
+
+    const light = (key: string | null) => {
+      spans.forEach((s) => s.classList.toggle('is-lit', key !== null && s.dataset.ev === key));
+    };
+
+    fields.forEach((field) => {
+      const key = field.dataset.field ?? null;
+      field.addEventListener('pointerenter', () => light(key));
+      field.addEventListener('pointerleave', () => light(pinned));
+      field.addEventListener('focus', () => light(key));
+      field.addEventListener('blur', () => light(pinned));
+      field.addEventListener('click', () => {
+        pinned = pinned === key ? null : key;
+        fields.forEach((f) => f.setAttribute('aria-pressed', String(f.dataset.field === pinned)));
+        light(pinned);
+      });
+    });
+
+    const setApproved = (approved: boolean) => {
+      approve.setAttribute('aria-pressed', String(approved));
+      approve.textContent = approved ? 'Reopen the draft' : 'Approve as the doctor';
+      status.textContent = approved ? 'Approved. Version 1 kept.' : 'Draft. Waiting for a doctor.';
+      sim.classList.toggle('is-approved', approved);
+      if (approved && !reduceMotion()) {
+        animate(stamp, { scale: [2.4, 1], rotate: [-24, -9], opacity: [0, 1] }, { type: 'spring', stiffness: 420, damping: 22 });
+      }
+    };
+
+    approve.addEventListener('click', () => setApproved(approve.getAttribute('aria-pressed') !== 'true'));
+
+    // Split the transcript into words once, so they can be "heard" one at a time.
+    spans.forEach((s) => {
+      const words = (s.textContent ?? '').split(' ');
+      s.textContent = '';
+      words.forEach((w, i) => {
+        const el = document.createElement('i');
+        el.textContent = w;
+        s.append(el, i < words.length - 1 ? ' ' : '');
+      });
+    });
+    const words = [...sim.querySelectorAll<HTMLElement>('.sim__said i')];
+
+    const playback = async () => {
+      const id = ++run;
+      const alive = () => id === run;
+      pinned = null;
+      light(null);
+      setApproved(false);
+      fields.forEach((f) => {
+        f.setAttribute('aria-pressed', 'false');
+        f.classList.add('is-empty');
+      });
+      words.forEach((w) => (w.style.opacity = '0'));
+      sim.classList.add('is-playing');
+      wave.classList.add('is-on');
+      status.textContent = 'Listening.';
+
+      for (const w of words) {
+        if (!alive()) return;
+        animate(w, { opacity: [0, 1], y: [6, 0] }, { duration: 0.25 });
+        await wait(110);
+      }
+      wave.classList.remove('is-on');
+      status.textContent = 'Filling the form.';
+      await wait(350);
+
+      for (const f of fields) {
+        if (!alive()) return;
+        const key = f.dataset.field ?? null;
+        light(key);
+        await wait(380);
+        f.classList.remove('is-empty');
+        animate(f.querySelector('b')!, { opacity: [0, 1], x: [-10, 0] }, { duration: 0.4 });
+        await wait(520);
+      }
+      if (!alive()) return;
+      light(null);
+      sim.classList.remove('is-playing');
+      status.textContent = 'Draft. Waiting for a doctor.';
+      animate(approve, { scale: [1, 1.06, 1] }, { duration: 0.5 });
+    };
+
+    play.addEventListener('click', () => {
+      if (reduceMotion()) return;
+      playback();
+    });
+
+    if (reduceMotion()) {
+      play.hidden = true;
+    } else {
+      inView(sim, () => void playback(), { amount: 0.25 });
+    }
+  });
+</script>

@@ -1,0 +1,31 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../data/site';
+---
+
+<Base
+  title="Contact"
+  description="Write to Shivam Birmole about something you are building, a founder's-office role, or a problem worth building for."
+>
+  <header class="page-head">
+    <h1>If you are building something, write to me.</h1>
+    <p class="lede">
+      A product, a founder's-office role, or a problem you keep working around. Email is the fastest way to reach me.
+    </p>
+  </header>
+
+  <ul class="contact-list">
+    <li>
+      <span class="pen">email</span>
+      <a href={`mailto:${site.email}`}>{site.email}</a>
+    </li>
+    <li>
+      <span class="pen">linkedin</span>
+      <a href={site.linkedin} rel="me noopener">{site.linkedin.replace('https://', '')}</a>
+    </li>
+    <li>
+      <span class="pen">github</span>
+      <a href={site.github} rel="me noopener">{site.github.replace('https://', '')}</a>
+    </li>
+  </ul>
+</Base>

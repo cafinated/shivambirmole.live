@@ -1,0 +1,169 @@
+---
+// The opening scene: a leaking pipe.
+// Three leaks, each one a problem I noticed. Scroll, and I walk in with a wrench and clamp them
+// one at a time. Each clamp turns the problem into the product built for it, and the water runs clean.
+// (A pipeline is also what four years of data engineering looked like.)
+// Without JavaScript, or with reduced motion, the scene is shown already fixed.
+import { Image } from 'astro:assets';
+import portrait from '../../assets/images/portrait.jpg';
+
+const leaks = [
+  { problem: 'a doctor speaks three languages, the form takes one', title: 'MedDraft', href: '/work/meddraft/', x: 320, y: 90 },
+  { problem: 'friends far apart, one chat window', title: 'Kuchu Puchu', href: '/work/kuchu-puchu/', x: 200, y: 210 },
+  { problem: 'lost things, scrolled away by lunch', title: 'MU Central', href: '/work/mu-central/', x: 400, y: 330 },
+];
+const pipe = 'M30 90H510A60 60 0 0 1 510 210H90A60 60 0 0 0 90 330H570';
+---
+
+<section class="hero is-flowing" data-hero aria-labelledby="hero-title">
+  <div class="hero__stage">
+    <div class="sheet hero__sheet">
+      <div class="hero__copy">
+        <h1 class="hero__title" id="hero-title">
+          <span>I notice problems.</span>
+          <span data-then>Then I build something for them.</span>
+        </h1>
+        <p class="hero__hint pen" data-hint>this pipe is leaking in three places. scroll.</p>
+      </div>
+
+      <div class="scene" data-scene>
+        <svg class="scene__svg" viewBox="0 0 600 520" role="img" aria-label="A pipe with three leaks. Each leak is clamped and becomes one of my products." focusable="false">
+          <ellipse class="puddle" data-puddle cx="400" cy="470" rx="150" ry="16" />
+          <path class="pipe pipe--outer" d={pipe} />
+          <path class="pipe pipe--inner" d={pipe} />
+          <path class="water" d={pipe} />
+
+          {
+            leaks.map((l, i) => (
+              <g class={`leak leak--${i}`}>
+                <g class="drops">
+                  <circle class="drop" cx={l.x} cy={l.y + 16} r="4.5" />
+                  <circle class="drop drop--b" cx={l.x + 7} cy={l.y + 16} r="3.5" />
+                  <circle class="drop drop--c" cx={l.x - 6} cy={l.y + 16} r="3" />
+                </g>
+                <path class="crack" d={`M${l.x - 7} ${l.y + 6}l5 -7l4 9l5 -8l5 7`} />
+                <g class="clamp">
+                  <rect x={l.x - 13} y={l.y - 24} width="26" height="48" rx="5" />
+                  <circle cx={l.x} cy={l.y - 13} r="2.4" />
+                  <circle cx={l.x} cy={l.y + 13} r="2.4" />
+                </g>
+              </g>
+            ))
+          }
+
+          <g class="wrench" data-wrench transform="translate(700 40)">
+            <rect x="0" y="-5" width="66" height="10" rx="5" />
+            <circle cx="70" cy="0" r="13" />
+            <rect class="wrench__jaw" x="72" y="-6" width="18" height="12" />
+          </g>
+        </svg>
+
+        <ul class="labels">
+          {
+            leaks.map((l, i) => (
+              <li class={`lbl lbl--${i}`}>
+                <span class="lbl__problem pen">{l.problem}</span>
+                <a class="lbl__built" href={l.href}>→ {l.title}</a>
+              </li>
+            ))
+          }
+        </ul>
+
+        <figure class="me" data-me>
+          <Image
+            src={portrait}
+            alt="Shivam Birmole, bearded, in a light grey suit, smiling."
+            widths={[120, 240]}
+            sizes="6rem"
+            loading="eager"
+            fetchpriority="high"
+          />
+          <figcaption class="pen">I'll take it from here.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { scroll } from 'motion';
+  import { reduceMotion, lerp, easeInOut, span, clamp } from '../../scripts/motion-utils';
+
+  const hero = document.querySelector<HTMLElement>('[data-hero]');
+
+  if (hero && !reduceMotion()) {
+    hero.classList.add('is-live');
+    hero.classList.remove('is-flowing');
+
+    const then = hero.querySelector<HTMLElement>('[data-then]')!;
+    const hint = hero.querySelector<HTMLElement>('[data-hint]')!;
+    const me = hero.querySelector<HTMLElement>('[data-me]')!;
+    const wrench = hero.querySelector<SVGGElement>('[data-wrench]')!;
+    const puddle = hero.querySelector<SVGEllipseElement>('[data-puddle]')!;
+
+    const leaks = [
+      { x: 320, y: 90 },
+      { x: 200, y: 210 },
+      { x: 400, y: 330 },
+    ];
+    const start = { x: 700, y: 60 };
+    const exit = { x: 720, y: 330 };
+    const angle = (-38 * Math.PI) / 180;
+    const head = 70;
+
+    const place = (x: number, y: number, wobble: number, opacity: number) => {
+      const a = angle + wobble;
+      const tx = x - head * Math.cos(a);
+      const ty = y - head * Math.sin(a);
+      wrench.setAttribute('transform', `translate(${tx} ${ty}) rotate(${(a * 180) / Math.PI})`);
+      wrench.style.opacity = String(opacity);
+    };
+
+    // Step i: the wrench travels to leak i, then turns, then the clamp closes.
+    const move = (i: number) => 0.3 + i * 0.16;
+
+    const render = (p: number) => {
+      hint.style.opacity = String(1 - span(p, 0, 0.08));
+      const t = span(p, 0.3, 0.44);
+      then.style.opacity = String(t);
+      then.style.transform = `translateY(${lerp(16, 0, t)}px)`;
+
+      me.style.opacity = String(span(p, 0.18, 0.28));
+      me.style.transform = `translateX(${lerp(-26, 0, easeInOut(span(p, 0.18, 0.28)))}px)`;
+
+      // Wrench position along its route.
+      let prev = start;
+      let cur = start;
+      for (let i = 0; i < leaks.length; i++) {
+        const k = easeInOut(span(p, move(i), move(i) + 0.06));
+        cur = { x: lerp(prev.x, leaks[i].x, k), y: lerp(prev.y, leaks[i].y - 6, k) };
+        if (k < 1) break;
+        prev = { x: leaks[i].x, y: leaks[i].y - 6 };
+      }
+      let opacity = span(p, 0.26, 0.3);
+      if (p > 0.8) {
+        const k = easeInOut(span(p, 0.8, 0.9));
+        cur = { x: lerp(leaks[2].x, exit.x, k), y: lerp(leaks[2].y - 6, exit.y, k) };
+        opacity = 1 - k;
+      }
+
+      let wobble = 0;
+      leaks.forEach((_, i) => {
+        const turn = span(p, move(i) + 0.06, move(i) + 0.14);
+        if (turn > 0 && turn < 1) wobble = Math.sin(turn * Math.PI * 6) * 0.3;
+        hero.style.setProperty(`--c${i}`, String(easeInOut(span(p, move(i) + 0.08, move(i) + 0.14))));
+      });
+      place(cur.x, cur.y, wobble, clamp(opacity));
+
+      // The puddle rises while the leaks run, then drains once the last one is fixed.
+      const level = span(p, 0, 0.3) * (1 - span(p, 0.7, 0.82));
+      puddle.style.transform = `scale(${lerp(0.15, 1, level)}, ${lerp(0.1, 1, level)})`;
+      puddle.style.opacity = String(level > 0.01 ? 0.18 + 0.12 * level : 0);
+
+      hero.classList.toggle('is-flowing', p > 0.78);
+    };
+
+    render(0);
+    scroll((p: number) => render(p), { target: hero, offset: ['start start', 'end end'] });
+  }
+</script>

@@ -1,0 +1,82 @@
+---
+import { getCollection, render } from 'astro:content';
+import { Image } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import Arrow from '../../components/Arrow.astro';
+import Ledger from '../../components/Ledger.astro';
+import MedDraftDemo from '../../components/toys/MedDraftDemo.astro';
+import KuchuToy from '../../components/toys/KuchuToy.astro';
+import CentralToy from '../../components/toys/CentralToy.astro';
+import Chalkboard from '../../components/scenes/Chalkboard.astro';
+import cafeMenu from '../../assets/images/cafe-menu.jpg';
+
+export async function getStaticPaths() {
+  const work = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
+  return work.map((entry, i) => ({
+    params: { slug: entry.id },
+    props: { entry, next: work[(i + 1) % work.length] },
+  }));
+}
+
+const { entry, next } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+---
+
+<Base title={d.title} description={d.description}>
+  <article>
+    <header class="case-head">
+      <a class="back" href="/work/"><Arrow /> All work</a>
+      <h1>{d.title}</h1>
+      <p class="lede">{d.lede}</p>
+      <dl class="facts">
+        {
+          d.facts.map((fact) => (
+            <div>
+              <dt>{fact.label}</dt>
+              <dd>{fact.href ? <a href={fact.href}>{fact.value}</a> : fact.value}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </header>
+
+    {d.demo === 'meddraft' && <MedDraftDemo />}
+    {d.demo === 'kuchu' && <KuchuToy />}
+    {d.demo === 'central' && <CentralToy />}
+
+    {
+      d.photo === 'cafe-menu' && (
+        <figure class="photo case-photo">
+          <Image
+            src={cafeMenu}
+            alt="Two hand-lettered chalkboards from Café 101. The menu lists sandwiches, paneer barbeque, cakes and tarts, cold and hot drinks, four kinds of Maggi and a Maggizza."
+            widths={[544, 940]}
+            sizes="(min-width: 40rem) 34rem, 92vw"
+            loading="eager"
+          />
+          <figcaption>The real chalkboard menu from Café 101.</figcaption>
+        </figure>
+      )
+    }
+
+    {
+      d.photo === 'cafe-menu' && (
+        <div class="case-board on-ink">
+          <Chalkboard prompt="This board is yours. Add something to the menu." />
+        </div>
+      )
+    }
+
+    <div class="prose">
+      <Content />
+    </div>
+
+    <Ledger evidence={d.evidence} supportsLabel={d.supportsLabel} />
+
+    <p class="next">
+      <span class="pen">next</span>
+      <a href={`/work/${next.id}/`}>{next.data.title} <Arrow long /></a>
+    </p>
+  </article>
+</Base>

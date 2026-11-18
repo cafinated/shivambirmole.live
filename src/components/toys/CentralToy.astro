@@ -1,0 +1,110 @@
+---
+// MU Central's idea as a toy: a campus group chat where everything scrolls past,
+// and one button that gives each kind of message its own board.
+// Every message here is invented for the illustration.
+const messages = [
+  { t: 'Anyone up for football at 6?', board: '' },
+  { t: 'NOTICE: library closes at 8 tonight', board: 'notice' },
+  { t: 'Lost: black umbrella, cafeteria', board: 'lost' },
+  { t: 'haha', board: '' },
+  { t: 'Selling: study lamp, barely used', board: 'sell' },
+  { t: 'NOTICE: guest lecture moved to 5 pm', board: 'notice' },
+  { t: 'Found: ID card near the gate', board: 'lost' },
+  { t: 'good morning everyone', board: '' },
+  { t: 'Selling: cycle, one year old', board: 'sell' },
+  { t: 'who has the notes from today?', board: '' },
+];
+const boards = [
+  { key: 'notice', label: 'Notices' },
+  { key: 'lost', label: 'Lost and found' },
+  { key: 'sell', label: 'Buy and sell' },
+];
+---
+
+<div class="toy">
+  <div class="central" data-central>
+    <p class="central__bar"><span>One campus group chat</span><span>Invented messages</span></p>
+    <div class="central__body">
+      <div class="central__chat">
+        <h3 class="pen">the group chat</h3>
+        <ul data-chat>
+          {
+            messages.map((m, i) => (
+              <li class="msg" data-msg data-board={m.board} data-i={i}>
+                {m.t}
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+      <div class="central__boards">
+        {
+          boards.map((b) => (
+            <div class="board">
+              <h3 class="pen">{b.label}</h3>
+              <ul data-board-list={b.key} />
+            </div>
+          ))
+        }
+      </div>
+    </div>
+    <div class="central__foot">
+      <p class="pen" role="status" data-central-status>Ten messages. Six of them matter tomorrow.</p>
+      <button class="sim__btn sim__btn--solid" type="button" aria-pressed="false" data-sort>Give each one a place</button>
+    </div>
+  </div>
+  <p class="toy__note">
+    An illustration of the idea, with invented messages. The real thing is at{' '}
+    <a href="https://mu-central.vercel.app/">mu-central.vercel.app</a>, behind a campus email sign-in.
+  </p>
+</div>
+
+<script>
+  import { animate } from 'motion';
+  import { reduceMotion } from '../../scripts/motion-utils';
+
+  document.querySelectorAll<HTMLElement>('[data-central]').forEach((root) => {
+    const chat = root.querySelector<HTMLElement>('[data-chat]')!;
+    const msgs = [...root.querySelectorAll<HTMLElement>('[data-msg]')];
+    const button = root.querySelector<HTMLButtonElement>('[data-sort]')!;
+    const status = root.querySelector<HTMLElement>('[data-central-status]')!;
+    const lists = new Map(
+      [...root.querySelectorAll<HTMLElement>('[data-board-list]')].map((l) => [l.dataset.boardList!, l]),
+    );
+
+    button.addEventListener('click', () => {
+      const sorted = button.getAttribute('aria-pressed') !== 'true';
+      const first = new Map(msgs.map((m) => [m, m.getBoundingClientRect()]));
+
+      // Move the nodes, then animate each from where it was (FLIP).
+      if (sorted) {
+        msgs.forEach((m) => {
+          const list = lists.get(m.dataset.board ?? '');
+          if (list) list.append(m);
+        });
+      } else {
+        [...msgs].sort((a, b) => Number(a.dataset.i) - Number(b.dataset.i)).forEach((m) => chat.append(m));
+      }
+      root.classList.toggle('is-sorted', sorted);
+      button.setAttribute('aria-pressed', String(sorted));
+      button.textContent = sorted ? 'Back to the chat' : 'Give each one a place';
+      status.textContent = sorted
+        ? 'Three boards. The chatter stays in the chat.'
+        : 'Ten messages. Six of them matter tomorrow.';
+
+      if (reduceMotion()) return;
+      msgs.forEach((m, i) => {
+        const a = first.get(m)!;
+        const b = m.getBoundingClientRect();
+        const dx = a.left - b.left;
+        const dy = a.top - b.top;
+        if (!dx && !dy) return;
+        animate(
+          m,
+          { x: [dx, 0], y: [dy, 0], rotate: [i % 2 ? 3 : -3, 0] },
+          { type: 'spring', stiffness: 260, damping: 26, delay: i * 0.045 },
+        );
+      });
+    });
+  });
+</script>

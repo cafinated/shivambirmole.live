@@ -1,0 +1,12 @@
+node_modules
+dist
+.astro
+.impeccable
+.DS_Store
+.claude
+.agents
+.codex
+.mcp.json
+# Private working notes, not for a public repo
+CONTENT.md
+PRODUCT.md

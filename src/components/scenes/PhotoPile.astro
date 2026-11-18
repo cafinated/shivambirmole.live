@@ -1,0 +1,89 @@
+---
+// Real photographs as a deck. Press the deck or the button and the top photo slides off
+// and goes to the back. Works with a mouse, a finger and a keyboard.
+// To add photos later, add entries to `photos` below.
+import { Image } from 'astro:assets';
+import vietnam from '../../assets/images/travel-vietnam.jpg';
+import rappel from '../../assets/images/waterfall-rappel.jpg';
+
+const photos = [
+  {
+    src: vietnam,
+    alt: 'Three travellers sitting on parked scooters on a gravel shore in Vietnam, with green limestone hills and still water behind them.',
+    caption: 'Vietnam, by scooter, between the limestone hills.',
+  },
+  {
+    src: rappel,
+    alt: 'Shivam in an orange helmet and a red life vest, leaning back on a rope as he rappels down a waterfall, with forest behind him.',
+    caption: 'Halfway down a waterfall, on a rope.',
+  },
+];
+---
+
+<div class="deck" data-deck>
+  <div class="deck__stack" data-stack>
+    {
+      photos.map((p) => (
+        <figure class="deck__card" data-card>
+          <Image src={p.src} alt={p.alt} widths={[640, 1280]} sizes="(min-width: 48rem) 40rem, 86vw" draggable="false" />
+          <figcaption>{p.caption}</figcaption>
+        </figure>
+      ))
+    }
+  </div>
+  <div class="deck__bar">
+    <p class="pen" data-count aria-live="polite">1 of {photos.length}</p>
+    <button class="sim__btn" type="button" data-next>Next photo</button>
+  </div>
+</div>
+
+<script>
+  import { reduceMotion } from '../../scripts/motion-utils';
+
+  document.querySelectorAll<HTMLElement>('[data-deck]').forEach((deck) => {
+    const stack = deck.querySelector<HTMLElement>('[data-stack]')!;
+    const cards = [...deck.querySelectorAll<HTMLElement>('[data-card]')];
+    const next = deck.querySelector<HTMLButtonElement>('[data-next]')!;
+    const count = deck.querySelector<HTMLElement>('[data-count]')!;
+    if (cards.length < 2) {
+      next.hidden = true;
+      return;
+    }
+
+    deck.classList.add('is-live');
+    const order = cards.map((_, i) => i);
+    let shown = 0;
+    let busy = false;
+
+    const layout = () => {
+      cards.forEach((card, i) => {
+        const depth = order.indexOf(i);
+        const tilt = depth === 0 ? -1.5 : depth % 2 ? 4 : -4;
+        card.style.zIndex = String(cards.length - depth);
+        card.style.transform = `translate(-50%, -50%) translate(${depth * 20}px, ${depth * -14}px) rotate(${tilt}deg) scale(${1 - depth * 0.05})`;
+        card.style.opacity = depth > 3 ? '0' : '1';
+        card.setAttribute('aria-hidden', String(depth !== 0));
+      });
+      count.textContent = `${shown + 1} of ${cards.length}`;
+    };
+
+    const advance = () => {
+      if (busy) return;
+      busy = true;
+      const top = cards[order[0]];
+      const settle = () => {
+        order.push(order.shift()!);
+        shown = (shown + 1) % cards.length;
+        layout();
+        busy = false;
+      };
+      if (reduceMotion()) return settle();
+      top.style.transform = 'translate(-50%, -50%) translate(115%, -6%) rotate(16deg)';
+      setTimeout(settle, 360);
+    };
+
+    layout();
+    next.addEventListener('click', advance);
+    stack.addEventListener('click', advance);
+  });
+</script>

@@ -1,0 +1,85 @@
+---
+import Base from '../layouts/Base.astro';
+import Arrow from '../components/Arrow.astro';
+---
+
+<Base
+  title="Education"
+  description="Shivam Birmole's education: Masters' Union, NMIMS computer engineering, the Databricks Data Engineer Associate certification, and the societies he has helped run."
+>
+  <header class="page-head">
+    <h1>Where I learned it.</h1>
+    <p class="lede">Two degrees, one certification, and a few rooms I helped run.</p>
+    <ul class="jump" aria-label="On this page">
+      <li><a href="#degrees">Degrees</a></li>
+      <li><a href="#certification">Certification</a></li>
+      <li><a href="#leadership">Leadership</a></li>
+    </ul>
+  </header>
+
+  <section class="section" id="degrees" aria-labelledby="degrees-title">
+    <h2 id="degrees-title">Degrees</h2>
+    <ol class="line">
+      <li>
+        <span class="when">2026 to now</span>
+        <div>
+          <strong>Post Graduate Programme in Technology & Business Management</strong>
+          <span class="what">Masters' Union. In progress.</span>
+        </div>
+      </li>
+      <li>
+        <span class="when">2018 to 2022</span>
+        <div>
+          <strong>B.Tech, Computer Engineering</strong>
+          <span class="what">NMIMS, Mukesh Patel School of Technology Management & Engineering.</span>
+        </div>
+      </li>
+    </ol>
+    <p class="measure" style="margin-top: var(--space-5)">
+      The first taught me to build things. The second is where I am learning to turn what I build into something people
+      use.
+    </p>
+  </section>
+
+  <section class="section" id="certification" aria-labelledby="cert-title">
+    <h2 id="cert-title">Certification</h2>
+    <ol class="line">
+      <li>
+        <span class="when">May 2025</span>
+        <div>
+          <strong>Databricks Certified Data Engineer Associate</strong>
+          <span class="what">Earned May 2025.</span>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <section class="section" id="leadership" aria-labelledby="lead-title">
+    <h2 id="lead-title">Leadership</h2>
+    <ol class="line">
+      <li>
+        <span class="when">2022</span>
+        <div>
+          <strong>Chairperson, NM Debate Society</strong>
+          <span class="what">Organised and led activities involving more than 200 debaters.</span>
+        </div>
+      </li>
+      <li>
+        <span class="when">2021</span>
+        <div><strong>Media Executive, NMMUN Summit</strong></div>
+      </li>
+      <li>
+        <span class="when">2020 to 2021</span>
+        <div><strong>CR & Hospitality Executive, YSF</strong></div>
+      </li>
+      <li>
+        <span class="when">Also</span>
+        <div><strong>Volunteering</strong><span class="what">Coastal clean-ups and career counselling.</span></div>
+      </li>
+    </ol>
+    <p class="measure" style="margin-top: var(--space-5)">
+      Debate taught me to lay a problem out before arguing about it, which is why the work on this site is written the
+      way it is. <a class="go" href="/work/">See the work <Arrow /></a>
+    </p>
+  </section>
+</Base>

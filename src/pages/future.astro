@@ -1,0 +1,70 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../data/site';
+---
+
+<Base
+  title="Build together"
+  description="Shivam Birmole is looking for people to build with: a problem worth fixing, a product to start, or a founder's-office role."
+>
+  <header class="page-head">
+    <h1>Let's build something together.</h1>
+    <p class="lede">I want to keep building. If you have a problem worth fixing, I'd like to hear it.</p>
+  </header>
+
+  <section class="section" aria-labelledby="want-title">
+    <h2 id="want-title">What I'm looking for</h2>
+    <div class="prose">
+      <p>
+        I work best on problems I can stand close to. A hospital's paperwork, a campus group chat, friends who live in
+        different cities. The people have a real problem, and I can watch them work around it before I build anything.
+      </p>
+      <p>
+        So I'm interested in healthcare operations, tools for communities, and anything with messy data that someone has
+        to trust. I'm also open to founder's-office roles where an idea needs someone to structure it and take it to
+        something running.
+      </p>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="bring-title">
+    <h2 id="bring-title">What I bring</h2>
+    <ul class="line">
+      <li><span class="when">Data</span><div>Four years of data engineering at TresVista, and the Databricks Data Engineer Associate certification.</div></li>
+      <li><span class="when">Operating</span><div>A café at eighteen, and work on the day-to-day running of a family hospital.</div></li>
+      <li><span class="when">Building</span><div>Three products, each taken from an observation to something public. <a href="/work/">See them</a>.</div></li>
+      <li><span class="when">Structure</span><div>Debate taught me to lay a problem out in columns before arguing about it.</div></li>
+    </ul>
+  </section>
+
+  <section class="section" aria-labelledby="hit-title" data-together>
+    <h2 id="hit-title">Tell me which one this is.</h2>
+    <p class="section__intro">Pick one and the email writes its own subject. You can change anything before you send it.</p>
+    <fieldset class="chips">
+      <legend class="visually-hidden">What kind of message is it?</legend>
+      <button class="chip" type="button" aria-pressed="true" data-kind="idea" data-subject="An idea to build together" data-body="Hi Shivam,%0D%0A%0D%0AHere is the problem I keep running into:%0D%0A%0D%0A">I have a problem to solve</button>
+      <button class="chip" type="button" aria-pressed="false" data-kind="role" data-subject="A founder's-office role" data-body="Hi Shivam,%0D%0A%0D%0AWe are looking for someone to:%0D%0A%0D%0A">I'm hiring</button>
+      <button class="chip" type="button" aria-pressed="false" data-kind="team" data-subject="Building something together" data-body="Hi Shivam,%0D%0A%0D%0AI am working on:%0D%0A%0D%0AI would like help with:%0D%0A%0D%0A">I'm building something</button>
+    </fieldset>
+    <p class="together-cta">
+      <a class="button" href={`mailto:${site.email}?subject=An%20idea%20to%20build%20together`} data-send>Write the email</a>
+    </p>
+    <p class="section__intro" style="margin-top: var(--space-4)">
+      Or write whatever you like to <a href={`mailto:${site.email}`}>{site.email}</a>.
+    </p>
+  </section>
+</Base>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-together]').forEach((root) => {
+    const chips = [...root.querySelectorAll<HTMLButtonElement>('[data-kind]')];
+    const send = root.querySelector<HTMLAnchorElement>('[data-send]')!;
+    const base = send.href.split('?')[0];
+    chips.forEach((chip) =>
+      chip.addEventListener('click', () => {
+        chips.forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
+        send.href = `${base}?subject=${encodeURIComponent(chip.dataset.subject ?? '')}&body=${chip.dataset.body ?? ''}`;
+      }),
+    );
+  });
+</script>

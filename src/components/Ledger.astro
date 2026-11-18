@@ -1,0 +1,30 @@
+---
+// The evidence ledger. Four columns that keep apart what I did, what the thing supports,
+// what has been measured, and what is still open. The open column is in red pen.
+const { evidence, supportsLabel } = Astro.props;
+
+const columns = [
+  { title: 'What I did', items: evidence.did },
+  { title: supportsLabel, items: evidence.supports },
+  { title: 'What has been measured', items: evidence.measured },
+  { title: 'What I do not know yet', items: evidence.open, open: true },
+].filter((c) => c.items.length > 0);
+---
+
+<section class="ledger" aria-labelledby="ledger-title" data-reveal>
+  <h2 id="ledger-title">What is known, and what is not.</h2>
+  <div class="ledger__cols">
+    {
+      columns.map((col) => (
+        <div class:list={{ 'is-open': col.open }}>
+          <h3>{col.title}</h3>
+          <ul>
+            {col.items.map((item: string) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        </div>
+      ))
+    }
+  </div>
+</section>

@@ -1,0 +1,76 @@
+---
+// A chalkboard you can write on, after the real one from Café 101.
+// Mouse, pen or finger. Nothing is saved or sent anywhere.
+const { prompt = 'The board is still up. Add something to the menu.' } = Astro.props;
+---
+
+<div class="chalk" data-chalk>
+  <canvas class="chalk__board" data-board role="img" aria-label="A chalkboard you can draw on with a mouse or a finger."></canvas>
+  <p class="chalk__prompt pen" data-prompt>{prompt}</p>
+  <button class="chalk__wipe" type="button" data-wipe>Wipe the board</button>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-chalk]').forEach((root) => {
+    const canvas = root.querySelector<HTMLCanvasElement>('[data-board]')!;
+    const prompt = root.querySelector<HTMLElement>('[data-prompt]')!;
+    const wipe = root.querySelector<HTMLButtonElement>('[data-wipe]')!;
+    const ctx = canvas.getContext('2d')!;
+    let drawing = false;
+    let px = 0;
+    let py = 0;
+
+    const size = () => {
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      canvas.width = canvas.clientWidth * dpr;
+      canvas.height = canvas.clientHeight * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    size();
+    window.addEventListener('resize', size);
+
+    const point = (e: PointerEvent) => {
+      const r = canvas.getBoundingClientRect();
+      return [e.clientX - r.left, e.clientY - r.top] as const;
+    };
+
+    // Several thin, slightly offset strokes read as chalk instead of a marker.
+    const stroke = (x0: number, y0: number, x1: number, y1: number) => {
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = '#f3ece2';
+      for (let i = 0; i < 4; i++) {
+        const j = () => (Math.random() - 0.5) * 3.2;
+        ctx.globalAlpha = 0.28 + Math.random() * 0.3;
+        ctx.lineWidth = 1.5 + Math.random() * 2.5;
+        ctx.beginPath();
+        ctx.moveTo(x0 + j(), y0 + j());
+        ctx.lineTo(x1 + j(), y1 + j());
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+    };
+
+    canvas.addEventListener('pointerdown', (e) => {
+      drawing = true;
+      [px, py] = point(e);
+      canvas.setPointerCapture(e.pointerId);
+      prompt.classList.add('is-gone');
+      stroke(px, py, px + 0.5, py + 0.5);
+    });
+    canvas.addEventListener('pointermove', (e) => {
+      if (!drawing) return;
+      const [x, y] = point(e);
+      stroke(px, py, x, y);
+      px = x;
+      py = y;
+    });
+    const stop = () => (drawing = false);
+    canvas.addEventListener('pointerup', stop);
+    canvas.addEventListener('pointercancel', stop);
+
+    wipe.addEventListener('click', () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      prompt.classList.remove('is-gone');
+    });
+  });
+</script>

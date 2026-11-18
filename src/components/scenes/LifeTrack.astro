@@ -1,0 +1,216 @@
+---
+// Where the habit comes from. A pinned scene on black: vertical scrolling carries one line
+// sideways through five stops, the way an argument is carried across a flow sheet.
+// The data stop runs a small canvas: scattered marks pass through a pipeline and come out in rows.
+// Without JavaScript, or with reduced motion, the stops stack vertically.
+import { Image } from 'astro:assets';
+import Arrow from '../Arrow.astro';
+import cafeMenu from '../../assets/images/cafe-menu.jpg';
+import portrait from '../../assets/images/portrait.jpg';
+---
+
+<section class="life on-ink" data-life aria-labelledby="life-title">
+  <div class="life__stage">
+    <div class="life__track" data-track>
+      <article class="stop stop--intro">
+        <h2 id="life-title">Before the products there was a counter, a ward and a pipeline.</h2>
+        <p class="pen stop__cue">keep scrolling, it goes sideways</p>
+      </article>
+
+      <article class="stop stop--photo">
+        <figure class="photo">
+          <Image
+            src={cafeMenu}
+            alt="Two hand-lettered chalkboards from Café 101. The menu lists sandwiches, paneer barbeque, cakes and tarts, cold and hot drinks, four kinds of Maggi and a Maggizza."
+            widths={[420, 840]}
+            sizes="(min-width: 60rem) 24rem, 70vw"
+          />
+        </figure>
+        <div>
+          <p class="stop__when pen">2018, Kankavli</p>
+          <h3>I opened a café at eighteen.</h3>
+          <p>With my own money, right after Class XII. I wrote the menu, worked the counter and kept the accounts.</p>
+          <a class="go" href="/work/cafe-101/">The café story <Arrow /></a>
+        </div>
+      </article>
+
+      <article class="stop">
+        <p class="stop__when pen">2018 to 2022, Mumbai</p>
+        <h3>Computer engineering, and a debate society.</h3>
+        <p>
+          A B.Tech at NMIMS. I chaired the NM Debate Society, more than 200 debaters, which is where I learned to lay a
+          problem out in columns before arguing about it.
+        </p>
+        <a class="go" href="/about/">More about me <Arrow /></a>
+      </article>
+
+      <article class="stop stop--wide">
+        <p class="stop__when pen">2022 to 2026, Pune</p>
+        <h3>Four years turning messy data into rows people could trust.</h3>
+        <div class="pipe">
+          <canvas data-pipe aria-hidden="true"></canvas>
+          <p class="pipe__labels pen" aria-hidden="true"><span>what arrives</span><span>pipeline</span><span>what leaves</span></p>
+        </div>
+        <p>
+          Associate at TresVista Analytics. PySpark and Airflow pipelines for investment data, dashboards for fraud and
+          marketing teams, fund-performance reporting.
+        </p>
+        <a class="go" href="/work/data-engineering/">What the work covered <Arrow /></a>
+      </article>
+
+      <article class="stop">
+        <p class="stop__when pen">alongside, the family hospital</p>
+        <h3>Schedules, maintenance and money.</h3>
+        <p>
+          Staff schedules clashed, maintenance went untracked and the finances were hard to follow. I interviewed
+          patients and staff, redesigned the duty schedule and the handoffs, and built the website.
+        </p>
+        <a class="go" href="/work/hospital-operations/">What I changed <Arrow /></a>
+      </article>
+
+      <article class="stop stop--photo stop--last">
+        <figure class="photo">
+          <Image
+            src={portrait}
+            alt="Shivam Birmole, bearded, in a light grey suit, standing with his hands clasped and smiling."
+            widths={[360, 720]}
+            sizes="(min-width: 60rem) 20rem, 60vw"
+          />
+        </figure>
+        <div>
+          <p class="stop__when pen">2026 on, Masters' Union</p>
+          <h3>Now I build products. And I am still building.</h3>
+          <p>Post Graduate Programme in Technology & Business Management, with three products shipped alongside it.</p>
+          <a class="go" href="/work/">All the work <Arrow /></a>
+        </div>
+      </article>
+    </div>
+    <div class="life__line" aria-hidden="true"><span data-line></span></div>
+  </div>
+</section>
+
+<script>
+  import { scroll } from 'motion';
+  import { reduceMotion } from '../../scripts/motion-utils';
+
+  const life = document.querySelector<HTMLElement>('[data-life]');
+
+  if (life && !reduceMotion()) {
+    const stage = life.querySelector<HTMLElement>('.life__stage')!;
+    const track = life.querySelector<HTMLElement>('[data-track]')!;
+    const line = life.querySelector<HTMLElement>('[data-line]')!;
+    life.classList.add('is-live');
+
+    let travel = 0;
+    const measure = () => {
+      travel = Math.max(0, track.scrollWidth - stage.clientWidth);
+      // One screen of vertical scroll per screen of sideways travel.
+      life.style.height = `${stage.clientHeight + travel}px`;
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    window.addEventListener('load', measure);
+
+    scroll(
+      (p: number) => {
+        track.style.transform = `translate3d(${-travel * p}px, 0, 0)`;
+        line.style.transform = `scaleX(${p})`;
+      },
+      { target: life, offset: ['start start', 'end end'] },
+    );
+  }
+
+  // The pipeline: scattered marks on the left, ordered rows on the right.
+  const canvas = document.querySelector<HTMLCanvasElement>('[data-pipe]');
+  if (canvas) {
+    const ctx = canvas.getContext('2d')!;
+    const paper = '#ede6dc';
+    const red = '#d98a6c';
+    const lanes = 5;
+    let w = 0;
+    let h = 0;
+    let running = false;
+    let last = 0;
+
+    type Mark = { x: number; y0: number; lane: number; phase: number; size: number; spin: number; odd: boolean; speed: number };
+    const marks: Mark[] = [];
+    const spawn = (x = -20): Mark => ({
+      x,
+      y0: 0.12 + Math.random() * 0.76,
+      lane: Math.floor(Math.random() * lanes),
+      phase: Math.random() * 6.28,
+      size: 4 + Math.random() * 7,
+      spin: (Math.random() - 0.5) * 3,
+      odd: Math.random() < 0.3,
+      speed: 46 + Math.random() * 26,
+    });
+
+    const size = () => {
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      w = canvas.clientWidth;
+      h = canvas.clientHeight;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+
+    const draw = (t: number) => {
+      const dt = Math.min(0.05, (t - last) / 1000 || 0);
+      last = t;
+      ctx.clearRect(0, 0, w, h);
+
+      const gateA = w * 0.42;
+      const gateB = w * 0.58;
+      ctx.strokeStyle = paper;
+      ctx.globalAlpha = 0.55;
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([5, 6]);
+      ctx.strokeRect(gateA, 6, gateB - gateA, h - 12);
+      ctx.setLineDash([]);
+
+      for (const m of marks) {
+        m.x += m.speed * dt;
+        if (m.x > w + 20) Object.assign(m, spawn());
+        const laneY = ((m.lane + 0.5) / lanes) * h;
+        const messyY = m.y0 * h + Math.sin(t / 600 + m.phase) * 14;
+        const k = Math.min(1, Math.max(0, (m.x - gateA) / (gateB - gateA)));
+        const y = messyY + (laneY - messyY) * k * k * (3 - 2 * k);
+        const s = m.size + (7 - m.size) * k;
+        // Past the pipeline the marks snap to a grid, like rows in a table.
+        const x = k >= 1 ? Math.round(m.x / 16) * 16 : m.x;
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate((1 - k) * (m.spin + t / 900));
+        ctx.globalAlpha = 0.5 + 0.5 * k;
+        ctx.fillStyle = m.odd && k < 0.5 ? red : paper;
+        ctx.fillRect(-s / 2, -s / 2, s, s);
+        ctx.restore();
+      }
+      ctx.globalAlpha = 1;
+      if (running) requestAnimationFrame(draw);
+    };
+
+    size();
+    for (let i = 0; i < 64; i++) marks.push(spawn(Math.random() * (w || 600)));
+    window.addEventListener('resize', size);
+
+    if (reduceMotion()) {
+      requestAnimationFrame((t) => {
+        last = t;
+        draw(t);
+      });
+    } else {
+      new IntersectionObserver(([entry]) => {
+        const now = entry.isIntersecting;
+        if (now && !running) {
+          running = true;
+          size();
+          last = performance.now();
+          requestAnimationFrame(draw);
+        }
+        running = now;
+      }).observe(canvas);
+    }
+  }
+</script>

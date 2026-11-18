@@ -1,0 +1,139 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import Arrow from '../components/Arrow.astro';
+import portrait from '../assets/images/portrait.jpg';
+---
+
+<Base
+  title="About"
+  description="Shivam Birmole: a café at eighteen, a computer engineering degree, four years of data engineering at TresVista, and now building products while studying at Masters' Union."
+>
+  <header class="page-head">
+    <h1>A café, a degree, four years of data, and now products.</h1>
+  </header>
+
+  <div class="about">
+    <div class="about__text">
+      <p>
+        I'm Shivam. I'm from a family that works in healthcare, and the first thing I ever started was a café in
+        Kankavli, the year I finished school.
+      </p>
+      <p>
+        I studied computer engineering at NMIMS in Mumbai, then spent four years at TresVista in Pune as a data
+        engineer. The job was to take data that arrived messy, from vendors, banks and fund managers, and turn it
+        into something a person could rely on to make a decision.
+      </p>
+      <p>
+        That habit carried into what I build now. MedDraft takes a doctor's spoken notes and gives them a structure a
+        doctor can check. MU Central takes what scrolls past in a campus group chat and gives it a place. The data work
+        and the products are the same instinct, pointed at different problems.
+      </p>
+      <p>
+        In college I chaired the NM Debate Society. Debate is where I learned to lay a problem out in columns before
+        arguing about it, which is why this site looks the way it does.
+      </p>
+      <p>
+        I'm now in the Post Graduate Programme in Technology & Business Management at Masters' Union, and I am still
+        building.
+      </p>
+      <p><a class="go" href="/work/">See the work <Arrow /></a></p>
+    </div>
+    <figure class="photo">
+      <Image
+        src={portrait}
+        alt="Shivam Birmole, bearded, in a light grey suit, standing with his hands clasped and smiling."
+        widths={[400, 800]}
+        sizes="(min-width: 60rem) 26rem, 92vw"
+        loading="eager"
+      />
+      <figcaption>The one photo of me in a suit.</figcaption>
+    </figure>
+  </div>
+
+  <section class="section" aria-labelledby="line-title">
+    <h2 id="line-title">In order.</h2>
+    <ol class="line">
+      <li>
+        <span class="when">2018</span>
+        <div><strong>Café 101, Kankavli</strong><span class="what">Started, funded and ran it after Class XII.</span></div>
+      </li>
+      <li>
+        <span class="when">2018 to 2022</span>
+        <div>
+          <strong>B.Tech, Computer Engineering</strong>
+          <span class="what">NMIMS, Mukesh Patel School of Technology Management & Engineering.</span>
+        </div>
+      </li>
+      <li>
+        <span class="when">2022 to 2026</span>
+        <div>
+          <strong>Associate, TresVista Analytics LLP</strong>
+          <span class="what">Data engineering and analytics, Pune. June 2022 to April 2026.</span>
+        </div>
+      </li>
+      <li>
+        <span class="when">May 2025</span>
+        <div><strong>Databricks Certified Data Engineer Associate</strong><span class="what">Earned May 2025.</span></div>
+      </li>
+      <li>
+        <span class="when">2026 on</span>
+        <div>
+          <strong>Masters' Union</strong>
+          <span class="what">Post Graduate Programme in Technology & Business Management.</span>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <section class="section" aria-labelledby="more-title">
+    <h2 id="more-title">Rooms I have run, and tools I use.</h2>
+    <div class="two-col" style="margin-top: var(--space-6)">
+      <div>
+        <h3>Organising</h3>
+        <ol class="line">
+          <li>
+            <span class="when">2022</span>
+            <div>
+              <strong>Chairperson, NM Debate Society</strong>
+              <span class="what">Organised and led activities for a society of more than 200 debaters.</span>
+            </div>
+          </li>
+          <li>
+            <span class="when">2021</span>
+            <div><strong>Media Executive, NMMUN Summit</strong></div>
+          </li>
+          <li>
+            <span class="when">2020 to 2021</span>
+            <div><strong>CR & Hospitality Executive, YSF</strong></div>
+          </li>
+          <li>
+            <span class="when">Also</span>
+            <div><strong>Volunteering</strong><span class="what">Coastal clean-ups and career counselling.</span></div>
+          </li>
+        </ol>
+      </div>
+      <div>
+        <h3>Tools</h3>
+        <ol class="line">
+          <li>
+            <span class="when">Data</span>
+            <div>Python, PySpark, SQL, Databricks, Apache Airflow</div>
+          </li>
+          <li>
+            <span class="when">Cloud</span>
+            <div>Azure, AWS S3, SQL Server</div>
+          </li>
+          <li>
+            <span class="when">Reporting</span>
+            <div>Power BI, Power Automate</div>
+          </li>
+          <li>
+            <span class="when">Products</span>
+            <div>Next.js, TypeScript, Tailwind, Supabase</div>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </section>
+</Base>

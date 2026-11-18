@@ -1,0 +1,32 @@
+---
+import Base from '../layouts/Base.astro';
+import PhotoPile from '../components/scenes/PhotoPile.astro';
+---
+
+<Base
+  title="Beyond work"
+  description="Shivam Birmole outside work: travel, mostly solo, photography and fitness."
+>
+  <header class="page-head">
+    <h1>Away from the laptop I am usually somewhere unfamiliar.</h1>
+  </header>
+
+  <PhotoPile />
+
+  <div class="beyond-text">
+    <p>
+      I travel when I can, and mostly on my own. 15+ countries so far. Going alone means every plan is mine to
+      make and mine to fix, and I like that.
+    </p>
+    <p>I take a camera, and I say yes to whatever the place offers. Some days that is a scooter. Some days it is a rope.</p>
+  </div>
+
+  <section class="section" aria-labelledby="rest-title">
+    <h2 id="rest-title">The rest of the week.</h2>
+    <div class="beyond-text">
+      <p>
+        I train, and I photograph things that are not work. Neither has a number attached and neither needs one.
+      </p>
+    </div>
+  </section>
+</Base>

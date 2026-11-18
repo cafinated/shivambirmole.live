@@ -1,0 +1,198 @@
+---
+import '@fontsource/eczar/500.css';
+import '@fontsource/eczar/600.css';
+import '@fontsource/eczar/700.css';
+import '@fontsource-variable/anek-latin/wght.css';
+import '@fontsource/kalam/400.css';
+import '../styles/global.css';
+import '../styles/scenes.css';
+import { site, nav } from '../data/site';
+import socialImage from '../assets/images/portrait.jpg';
+
+interface Props {
+  title?: string;
+  description: string;
+  /** Full-bleed pages lay out their own sheets, scene by scene. */
+  bleed?: boolean;
+}
+
+const { title, description, bleed = false } = Astro.props;
+const fullTitle = title ? `${title} · ${site.name}` : `${site.name} · builder with a data-engineering foundation`;
+const path = Astro.url.pathname;
+const canonical = new URL(path, Astro.site);
+const isCurrent = (href: string) => path === href || (href !== '/' && path.startsWith(href));
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta name="theme-color" content="#ede6dc" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={new URL(socialImage.src, Astro.site)} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script is:inline>
+      document.documentElement.classList.add('js');
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to the content</a>
+    <div class="progress" aria-hidden="true"><span data-progress></span></div>
+
+    <div class="sheet">
+      <header class="masthead">
+        <a class="masthead__name" href="/" aria-current={path === '/' ? 'page' : undefined}>{site.name}</a>
+        <nav aria-label="Main">
+          <ul>
+            {
+              nav.map((item) => (
+                <li>
+                  <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+                    {item.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+      </header>
+    </div>
+
+    <main id="main">
+      {bleed ? <slot /> : <div class="sheet"><slot /></div>}
+    </main>
+
+    <footer class="closing on-ink" data-closing>
+      <div class="sheet">
+        <div class="closing__inner">
+          <p class="closing__motion pen">the motion before the house</p>
+          <h2 data-motion-text>This house believes you should write to Shivam.</h2>
+          <div class="closing__votes">
+            <a class="vote vote--for" href={`mailto:${site.email}`}>For <span>opens an email</span></a>
+            <button class="vote vote--against" type="button" data-against>Against <span>make your case</span></button>
+          </div>
+          <p class="closing__rebuttal pen" data-rebuttal role="status"></p>
+          <a class="closing__mail" href={`mailto:${site.email}`}>{site.email}</a>
+          <ul class="closing__links">
+            <li><a href={site.github} rel="me noopener">GitHub</a></li>
+            <li><a href={site.linkedin} rel="me noopener">LinkedIn</a></li>
+            <li><a href="/work/">All work</a></li>
+          </ul>
+          <p class="closing__small">
+            <span>{site.name}</span>
+            <span>Black ink is what I did. Red ink is what I do not know yet.</span>
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <div class="topbar" data-topbar>
+      <div class="sheet topbar__inner">
+        <a class="topbar__name" href="/">{site.name}</a>
+        <nav aria-label="Quick">
+          {
+            nav.map((item) => (
+              <a href={item.href} class:list={{ minor: item.minor }} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+                {item.short ?? item.label}
+              </a>
+            ))
+          }
+        </nav>
+      </div>
+    </div>
+
+    <script>
+      import { animate, inView, scroll, stagger } from 'motion';
+      import { reduceMotion } from '../scripts/motion-utils';
+
+      const ease = [0.16, 1, 0.3, 1] as const;
+      const still = reduceMotion();
+
+      // A pen line across the top that tracks how far down the page you are.
+      const bar = document.querySelector<HTMLElement>('[data-progress]');
+      if (bar) scroll((p: number) => (bar.style.transform = `scaleX(${p})`));
+
+      // The top bar stays out of the way while you read down, and returns when you scroll up.
+      const topbar = document.querySelector<HTMLElement>('[data-topbar]');
+      if (topbar) {
+        let lastY = window.scrollY;
+        window.addEventListener(
+          'scroll',
+          () => {
+            const y = window.scrollY;
+            if (y <= 320 || y > lastY + 2) topbar.classList.remove('is-on');
+            else if (y < lastY - 2) topbar.classList.add('is-on');
+            lastY = y;
+          },
+          { passive: true },
+        );
+      }
+
+      if (!still) {
+        // Things arrive as they come into view.
+        document.querySelectorAll<HTMLElement>('[data-reveal]').forEach((el) => {
+          el.style.opacity = '0';
+          inView(
+            el,
+            () => {
+              animate(el, { opacity: [0, 1], clipPath: ['inset(0 0 100% 0)', 'inset(0 0 0% 0)'], y: [28, 0] }, { duration: 1, ease });
+            },
+            { margin: '0px 0px -10% 0px' },
+          );
+        });
+
+        // A flow strip is carried across: arrow, then cell, one column at a time.
+        document.querySelectorAll<HTMLElement>('[data-strip]').forEach((strip) => {
+          const cells = strip.querySelectorAll<HTMLElement>('[data-cell]');
+          const arrows = strip.querySelectorAll<SVGPathElement>('.arrow path');
+          cells.forEach((c) => (c.style.opacity = '0'));
+          arrows.forEach((p) => {
+            p.style.strokeDasharray = '1';
+            p.style.strokeDashoffset = '1';
+          });
+          inView(
+            strip,
+            () => {
+              animate(cells, { opacity: [0, 1], x: [-18, 0], filter: ['blur(4px)', 'blur(0px)'] }, { duration: 0.7, delay: stagger(0.22), ease });
+              animate(arrows, { strokeDashoffset: [1, 0] }, { duration: 0.5, delay: stagger(0.22, { startDelay: 0.18 }), ease });
+            },
+            { amount: 0.15 },
+          );
+        });
+
+        // Big headings on inner pages rise in, line by line.
+        document.querySelectorAll<HTMLElement>('.page-head h1, .case-head h1').forEach((h) => {
+          animate(h, { opacity: [0, 1], clipPath: ['inset(0 0 100% 0)', 'inset(0 0 -10% 0)'], y: [40, 0] }, { duration: 1.1, ease });
+        });
+      }
+
+      // The closing motion. Voting against gets a rebuttal.
+      const against = document.querySelector<HTMLButtonElement>('[data-against]');
+      const rebuttal = document.querySelector<HTMLElement>('[data-rebuttal]');
+      const rebuttals = [
+        'Rebuttal: three products, built and public. Scroll up and check.',
+        'Rebuttal: I ran a café at eighteen. I can take a no.',
+        'Point of information: the For button is right there.',
+      ];
+      let turn = 0;
+      against?.addEventListener('click', () => {
+        if (!rebuttal) return;
+        rebuttal.textContent = rebuttals[turn % rebuttals.length];
+        turn++;
+        if (!still) {
+          animate(rebuttal, { opacity: [0, 1], x: [-12, 0], rotate: [-2, -1] }, { duration: 0.5, ease });
+          animate(against, { x: [0, -6, 6, -4, 4, 0] }, { duration: 0.4 });
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,44 @@
+---
+// One product on the home page: its name, a toy you can play with, and its line on the flow
+// (noticed, thought through, built, now) carried across underneath.
+import Arrow from '../Arrow.astro';
+
+const { entry, index } = Astro.props;
+const d = entry.data;
+const f = d.flow;
+---
+
+<section class="product" aria-labelledby={`p-${entry.id}`}>
+  <div class="sheet">
+    <header class="product__head" data-reveal>
+      <p class="product__count pen">{index} of 3</p>
+      <h2 id={`p-${entry.id}`}>{d.title}</h2>
+      <p class="product__lede">{d.lede}</p>
+      <a class="go" href={`/work/${entry.id}/`}>Read the full case <Arrow /></a>
+    </header>
+
+    <div class="product__toy" data-reveal>
+      <slot />
+    </div>
+
+    <div class="strip" data-strip>
+      <div class="cell cell--noticed" data-cell>
+        <p class="cell__label">noticed</p>
+        <p>{f.noticed}</p>
+      </div>
+      <div class="cell" data-cell>
+        <p class="cell__label"><Arrow long />thought through</p>
+        <p>{f.thought}</p>
+      </div>
+      <div class="cell" data-cell>
+        <p class="cell__label"><Arrow long />built</p>
+        <p>{f.built}</p>
+      </div>
+      <div class="cell cell--now" data-cell>
+        <p class="cell__label"><Arrow long />now</p>
+        <p>{f.now}</p>
+        <p class="red">{f.open}</p>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,80 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Arrow from '../components/Arrow.astro';
+import Hero from '../components/scenes/Hero.astro';
+import ProductScene from '../components/scenes/ProductScene.astro';
+import LifeTrack from '../components/scenes/LifeTrack.astro';
+import Chalkboard from '../components/scenes/Chalkboard.astro';
+import PhotoPile from '../components/scenes/PhotoPile.astro';
+import MedDraftDemo from '../components/toys/MedDraftDemo.astro';
+import KuchuToy from '../components/toys/KuchuToy.astro';
+import CentralToy from '../components/toys/CentralToy.astro';
+
+const work = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
+const featured = work.filter((w) => w.data.flow);
+const toys: Record<string, any> = { meddraft: MedDraftDemo, kuchu: KuchuToy, central: CentralToy };
+---
+
+<Base
+  bleed
+  description="Shivam Birmole builds products for problems he has stood close to: a hospital's paperwork, faraway friends, a campus. Four years of data engineering underneath."
+>
+  <Hero />
+
+  <section class="bridge" id="products">
+    <div class="sheet">
+      <p class="bridge__text" data-reveal>
+        I'm Shivam Birmole. I ran a café at eighteen, spent four years as a data engineer, and have worked on the
+        day-to-day running of my family's hospital. Each of the three things below started as something I watched
+        people work around. <strong>You can play with all of them.</strong>
+      </p>
+      <p class="flow-key" data-reveal>
+        <span>Black ink is what I did.</span>
+        <span class="red">Red ink is what I don't know yet.</span>
+      </p>
+    </div>
+  </section>
+
+  {
+    featured.map((entry, i) => {
+      const Toy = toys[entry.data.demo ?? ''];
+      return (
+        <ProductScene entry={entry} index={i + 1}>
+          {Toy && <Toy />}
+        </ProductScene>
+      );
+    })
+  }
+
+  <LifeTrack />
+
+  <section class="board-scene on-ink" aria-labelledby="board-title">
+    <div class="sheet">
+      <div class="board-scene__grid">
+        <div data-reveal>
+          <h2 id="board-title">The café closed. The board is still up.</h2>
+          <p>
+            Café 101 had a hand-lettered chalkboard menu, Maggizza included. This one is yours. Write on it with a mouse
+            or a finger.
+          </p>
+          <a class="go" href="/work/cafe-101/">See the real menu <Arrow /></a>
+        </div>
+        <div data-reveal>
+          <Chalkboard />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="away" aria-labelledby="away-title">
+    <div class="sheet">
+      <h2 id="away-title" data-reveal>Away from the laptop I am usually somewhere unfamiliar.</h2>
+      <p class="away__text" data-reveal>
+        I travel, mostly on my own, and I take a camera. 15+ countries so far.
+        <a class="go" href="/beyond/">More from outside work <Arrow /></a>
+      </p>
+      <PhotoPile />
+    </div>
+  </section>
+</Base>
