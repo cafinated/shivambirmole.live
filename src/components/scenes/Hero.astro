@@ -62,8 +62,10 @@ const pipe = 'M30 90H510A60 60 0 0 1 510 210H90A60 60 0 0 0 90 330H570';
           {
             leaks.map((l, i) => (
               <li class={`lbl lbl--${i}`}>
-                <span class="lbl__problem pen">{l.problem}</span>
-                <a class="lbl__built" href={l.href}>→ {l.title}</a>
+                <a class="lbl__link" href={l.href} aria-label={`${l.title}: ${l.problem}`}>
+                  <span class="lbl__problem pen">{l.problem}</span>
+                  <span class="lbl__built">→ {l.title}</span>
+                </a>
               </li>
             ))
           }

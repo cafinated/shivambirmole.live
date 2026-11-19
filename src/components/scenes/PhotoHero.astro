@@ -132,8 +132,8 @@ import scene from '../../assets/images/snow-summit.jpg';
         const imgH = Math.max(H * 1.45, (W * photo.naturalHeight) / (photo.naturalWidth || 1));
         photo.style.height = `${imgH}px`;
         travel = imgH - H;
-        // Start with the sunset low in the frame, so the words sit on sky, not snow.
-        horizon = Math.min(travel, Math.max(0, imgH * 0.49 - H * 0.78));
+        // Start centred on the photo: the summit and snow in view, sky above.
+        horizon = travel / 2;
         const count = Math.round((W * H) / 5200);
         stars = Array.from({ length: count }, () => ({
           x: Math.random() * W,

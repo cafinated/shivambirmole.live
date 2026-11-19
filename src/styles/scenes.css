@@ -326,8 +326,30 @@
   top: 48%;
 }
 
-.lbl > * {
+.lbl__link {
+  display: grid;
+  padding: 0.35rem 0.5rem;
+  margin: -0.35rem -0.5rem;
+  border-radius: 6px;
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 200ms var(--ease-out);
+}
+
+.lbl__link > * {
   grid-area: 1 / 1;
+}
+
+.lbl__link:hover,
+.lbl__link:focus-visible {
+  background: oklch(0.94 0.012 80 / 0.08);
+}
+
+.lbl__link:hover .lbl__problem,
+.lbl__link:hover .lbl__built {
+  text-decoration: underline;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.18em;
 }
 
 .lbl__problem {
@@ -353,7 +375,9 @@
   line-height: 1.1;
   white-space: nowrap;
   opacity: var(--c0, 1);
-  pointer-events: none;
+  text-decoration: underline;
+  text-decoration-thickness: 0.05em;
+  text-underline-offset: 0.16em;
 }
 
 .lbl--1 .lbl__built {
@@ -364,13 +388,7 @@
   opacity: var(--c2, 1);
 }
 
-.hero:not(.is-live) .lbl__built {
-  pointer-events: auto;
-}
 
-.hero.is-live .lbl__built {
-  pointer-events: auto;
-}
 
 .me {
   position: absolute;
@@ -1562,7 +1580,7 @@ html.is-loading {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 50% 42%;
+  object-position: 50% 50%;
   transform-origin: 50% 50%;
   will-change: transform;
 }
