@@ -1,37 +1,73 @@
 ---
-// "Walk my journey": a small side-scrolling game. Shivam walks one path through the places of his life,
-// growing up (and growing a beard) as he goes. Black and white line art, drawn in SVG.
-// Controls: hold → / ← (or A / D), hold the on-screen arrows, tap a stop on the map, or "Walk for me".
-// Reduced motion: no walk cycle; the map jumps between stops.
+// "Walk my journey": a small endless-runner, like the offline game in Chrome.
+// Shivam runs one path through the places of his life, growing up (and growing a beard) as he goes.
+// Space, ↑ or a tap jumps over what is in the way. Two stops are side quests: the path branches off the
+// main line, runs through them, and rejoins. Black and white line art, drawn in SVG.
 import Base from '../layouts/Base.astro';
 
-const STEP = 1150;
+const STEP = 1050;
 const FIRST = 700;
 const stops = [
   { key: 'school', when: 'Up to Class X', title: 'Kankavli', text: 'Where I grew up and went to school.' },
   { key: 'mumbai', when: 'Class XI and XII', title: 'Mumbai', text: 'Off to the big city for junior college.' },
-  { key: 'cafe', when: '2018', title: 'Café 101, back in Kankavli', text: 'After Class XII I opened a small café with my own money. Maggizza was on the menu.' },
+  { key: 'cafe', side: true, when: '2018', title: 'Café 101, back in Kankavli', text: 'After Class XII I opened a small café with my own money. Maggizza was on the menu.' },
   { key: 'college', when: '2018 to 2022', title: 'Engineering, NMIMS Mumbai', text: 'A B.Tech, hackathons, and chairing the NM Debate Society.' },
+  { key: 'europe1', side: true, trip: true, when: '2022 · after engineering', title: 'Europe', text: 'Degree done. First stop off the main road: Europe.' },
   { key: 'pune', when: '2022 to 2026', title: 'TresVista, Pune', text: 'Four years building data pipelines and dashboards. Evenings at concerts and the gym.' },
-  { key: 'travel', when: 'Whenever I can', title: '15+ countries', text: 'Mostly solo, usually with a camera. Summits, seas, and roads through the hills.' },
+  { key: 'europe2', side: true, trip: true, when: '2023 · a year into the job', title: 'Europe, again', text: 'One year in at TresVista, and back to Europe.' },
+  { key: 'china', side: true, trip: true, when: '2026 · after my last year at TresVista', title: 'China', text: 'Four years of work, closed out with a trip to China.' },
+  { key: 'sea', side: true, trip: true, when: '2026 · the gap', title: 'Thailand and Vietnam', text: 'After quitting, before Masters\' Union. Vietnam by scooter, between the limestone hills.' },
   { key: 'hospital', when: 'The gap', title: 'The family hospital, Kankavli', text: 'Back home before Masters\' Union, working on how the hospital runs.' },
   { key: 'mu', when: '2026 on', title: "Masters' Union", text: 'Post Graduate Programme in Technology & Business Management.' },
-  { key: 'build', when: 'Now', title: 'Building things', text: 'MedDraft, Kuchu Puchu and MU Central. The path keeps going.' },
+  { key: 'build', when: 'Now', title: 'Building things', text: 'MedDraft, Kuchu Puchu and MU Central. 15+ countries so far, and the path keeps going.' },
 ].map((s, i) => ({ ...s, x: FIRST + i * STEP }));
 const WORLD = FIRST + (stops.length - 1) * STEP + 900;
+const at = Object.fromEntries(stops.map((s) => [s.key, s.x])) as Record<string, number>;
 const G = 430;
+
+// Side quests: the path climbs off the main line, runs flat through the stop, and comes back down.
+const LIFT = 110;
+const RAMP = 140;
+const FLAT = 300;
+const sides = stops.filter((s) => s.side).map((s) => s.x);
+const smooth = (t: number) => t * t * (3 - 2 * t);
+const groundY = (x: number) => {
+  for (const sx of sides) {
+    const d = Math.abs(x - sx);
+    if (d <= FLAT) return G - LIFT;
+    if (d < FLAT + RAMP) return G - LIFT * smooth((FLAT + RAMP - d) / RAMP);
+  }
+  return G;
+};
+const ridge = (sx: number) =>
+  `M${sx - FLAT - RAMP} ${G} C${sx - FLAT - RAMP / 2} ${G} ${sx - FLAT - RAMP / 2} ${G - LIFT} ${sx - FLAT} ${G - LIFT} H${sx + FLAT} C${sx + FLAT + RAMP / 2} ${G - LIFT} ${sx + FLAT + RAMP / 2} ${G} ${sx + FLAT + RAMP} ${G}`;
+
+// Obstacles between stops, themed to that part of the road. Never near a stop or on a ramp.
+const kinds = ['books', 'suitcase', 'cone', 'bug', 'suitcase', 'deadline', 'deadline', 'suitcase', 'rock', 'cone', 'papers'];
+const obstacles: { x: number; kind: string; y: number }[] = [];
+stops.slice(0, -1).forEach((s, i) => {
+  const kind = kinds[i];
+  const spots = i === 0 ? [0.45] : [0.28, 0.7];
+  for (const f of spots) {
+    const x = Math.round(s.x + STEP * f);
+    // Skip anything on or near a side-quest ramp, and keep every pair far enough apart to land between.
+    const onRamp = sides.some((sx) => Math.abs(x - sx) > FLAT - 80 && Math.abs(x - sx) < FLAT + RAMP + 100);
+    const tooClose = obstacles.some((o) => Math.abs(o.x - x) < 380);
+    if (!onRamp && !tooClose) obstacles.push({ x, kind, y: groundY(x) });
+  }
+});
 ---
 
 <Base
-  title="Walk my journey"
+  title="Run my journey"
   description="A small game: walk with Shivam Birmole from school in Kankavli to Mumbai, a café, engineering, Pune, travel, the family hospital and Masters' Union."
 >
   <section class="journey" data-journey aria-labelledby="journey-title">
     <header class="journey__head">
-      <h1 id="journey-title">Walk my journey</h1>
+      <h1 id="journey-title">Run my journey</h1>
       <p class="journey__how pen" data-how>
-        <span class="only-keys">Hold → to walk, ← to go back.</span>
-        <span class="only-touch">Hold the arrows to walk.</span>
+        <span class="only-keys">Space or ↑ to jump.</span>
+        <span class="only-touch">Tap to jump.</span>
       </p>
     </header>
 
@@ -66,7 +102,7 @@ const G = 430;
         <line class="j-line road" x1="0" y1={G + 26} x2={WORLD} y2={G + 26} />
 
         <!-- 1. School, Kankavli -->
-        <g transform={`translate(${stops[0].x} ${G})`}>
+        <g transform={`translate(${at.school} ${G})`}>
           <path class="j-fill" d="M-170 -130h340v130h-340z" />
           <path class="j-fill" d="M-190 -130 0 -205 190 -130z" />
           <rect class="j-ink" x="-170" y="-112" width="340" height="22" />
@@ -88,7 +124,7 @@ const G = 430;
         </g>
 
         <!-- 2. Mumbai: skyline and a local train -->
-        <g transform={`translate(${stops[1].x} ${G})`}>
+        <g transform={`translate(${at.mumbai} ${G})`}>
           {[
             [-320, 150, 70], [-250, 220, 60], [-190, 180, 80], [-110, 260, 56], [-54, 200, 70], [16, 290, 64], [80, 210, 76], [156, 250, 58], [214, 170, 80],
           ].map(([x, h, w]) => (
@@ -121,8 +157,21 @@ const G = 430;
           </g>
         </g>
 
-        <!-- 3. Café 101 -->
-        <g transform={`translate(${stops[2].x} ${G})`}>
+        <!-- Side-quest ridges and the signs that point to them -->
+        {sides.map((sx) => (
+          <g>
+            <path class="j-ridge" d={`${ridge(sx)} Z`} fill="url(#hatch)" />
+            <path class="j-line ground" d={ridge(sx)} />
+            <g transform={`translate(${sx - FLAT - RAMP - 60} ${G})`}>
+              <line class="j-line" x1="0" y1="0" x2="0" y2="-96" />
+              <path class="j-ink" d="M-58 -132h104l16 16-16 16h-104z" />
+              <text class="j-text j-text--rev j-text--small" x="-6" y="-110" text-anchor="middle">SIDE QUEST ↗</text>
+            </g>
+          </g>
+        ))}
+
+        <!-- 3. Café 101 (side quest) -->
+        <g transform={`translate(${at.cafe} ${G - LIFT})`}>
           <path class="j-fill" d="M-140 -120h280v120h-280z" />
           <path class="j-ink" d="M-160 -120h320l-14 34h-292z" />
           {[-120, -70, -20, 30, 80].map((x) => <path class="j-fill" d={`M${x} -120h26l-6 34h-26z`} />)}
@@ -145,7 +194,7 @@ const G = 430;
         </g>
 
         <!-- 4. Engineering: college, debate podium, hackathon laptop -->
-        <g transform={`translate(${stops[3].x} ${G})`}>
+        <g transform={`translate(${at.college} ${G})`}>
           <path class="j-fill" d="M-210 -150h420v150h-420z" />
           <path class="j-fill" d="M-235 -150 0 -215 235 -150z" />
           {[-170, -110, -50, 10, 70, 130].map((x) => <rect class="j-fill" x={x} y="-140" width="30" height="140" />)}
@@ -167,7 +216,7 @@ const G = 430;
         </g>
 
         <!-- 5. Pune: office, concert, gym -->
-        <g transform={`translate(${stops[4].x} ${G})`}>
+        <g transform={`translate(${at.pune} ${G})`}>
           <path class="j-fill" d="M-90 -250h180v250h-180z" />
           {Array.from({ length: 6 }, (_, r) => [-62, -16, 30].map((x) => <rect class="j-ink" x={x} y={-228 + r * 34} width="32" height="18" />))}
           <rect class="j-fill" x="-70" y="-300" width="140" height="34" rx="4" />
@@ -195,33 +244,76 @@ const G = 430;
           </g>
         </g>
 
-        <!-- 6. Travel: mountains, a plane, a scooter, a boat -->
-        <g transform={`translate(${stops[5].x} ${G})`}>
-          <path class="j-fill" d="M-380 0l140-200 80 90 90-150 120 180 70-60 120 140z" />
-          <path class="j-ink" d="M-240 -200l-26 38 18-8 10 14 16-14 12 6zM10 -260l-30 44 22-10 10 16 18-16 18 8z" />
-          <g class="plane">
-            <path class="j-ink" d="M0 0l60-6 30-24h12l-14 26 40-4 10-12h8l-4 18 4 18h-8l-10-12-40-4 14 26h-12l-30-24-60-6z" />
+        <!-- Trips: quick side quests, each showing where I'm off to -->
+        <g transform={`translate(${at.europe1} ${G - LIFT})`}>
+          <g transform="translate(-120 0)">
+            <path class="j-fill" d="M-50 0l34-120h32l34 120h-22l-14-50h-28l-14 50z" />
+            <path class="j-fill" d="M-16 -120l10-90h12l10 90z" />
+            <line class="j-line" x1="0" y1="-210" x2="0" y2="-240" />
+            <path class="j-line j-thin" d="M-34 -60h68M-24 -100h48" />
           </g>
-          <g transform="translate(-300 0)">
-            <circle class="j-fill" cx="-26" cy="-16" r="16" />
-            <circle class="j-fill" cx="30" cy="-16" r="16" />
-            <path class="j-fill" d="M-26 -16h26l14-30h20l-4 30" />
-            <line class="j-line" x1="34" y1="-46" x2="44" y2="-62" />
-          </g>
-          <g transform="translate(310 0)">
-            <path class="j-line wave" d="M-90 -6q15-10 30 0t30 0 30 0 30 0 30 0 30 0" />
-            <path class="j-fill" d="M-50 -20h100l-16 18h-68z" />
-            <path class="j-fill" d="M0 -26v-90l46 80z" />
-          </g>
-          <g transform="translate(120 0)">
+          <g class="plane plane--short"><path class="j-ink" d="M0 0l60-6 30-24h12l-14 26 40-4 10-12h8l-4 18 4 18h-8l-10-12-40-4 14 26h-12l-30-24-60-6z" /></g>
+          <g transform="translate(150 0)">
             <line class="j-line" x1="0" y1="0" x2="0" y2="-60" />
-            <rect class="j-fill" x="-80" y="-92" width="160" height="34" rx="4" />
-            <text class="j-text" x="0" y="-69" text-anchor="middle">15+ COUNTRIES</text>
+            <rect class="j-ink" x="-74" y="-94" width="148" height="36" rx="4" />
+            <text class="j-text j-text--rev" x="0" y="-70" text-anchor="middle">EUROPE · 2022</text>
+          </g>
+        </g>
+
+        <g transform={`translate(${at.europe2} ${G - LIFT})`}>
+          <g transform="translate(-120 0)">
+            <path class="j-fill" d="M-30 0v-170h60v170z" />
+            <path class="j-fill" d="M-36 -170l36-46 36 46z" />
+            <circle class="j-fill" cx="0" cy="-138" r="18" />
+            <path class="j-line j-thin" d="M0 -138v-10M0 -138l8 6" />
+            {[-120, -90, -60, -30].map((y) => <line class="j-line j-thin" x1="-30" y1={y} x2="30" y2={y} />)}
+          </g>
+          <g class="plane plane--short"><path class="j-ink" d="M0 0l60-6 30-24h12l-14 26 40-4 10-12h8l-4 18 4 18h-8l-10-12-40-4 14 26h-12l-30-24-60-6z" /></g>
+          <g transform="translate(150 0)">
+            <line class="j-line" x1="0" y1="0" x2="0" y2="-60" />
+            <rect class="j-ink" x="-84" y="-94" width="168" height="36" rx="4" />
+            <text class="j-text j-text--rev" x="0" y="-70" text-anchor="middle">EUROPE AGAIN · 2023</text>
+          </g>
+        </g>
+
+        <g transform={`translate(${at.china} ${G - LIFT})`}>
+          <g transform="translate(-130 0)">
+            {[0, 1, 2, 3].map((i) => (
+              <g transform={`translate(0 ${-i * 44})`}>
+                <rect class="j-fill" x={-34 + i * 6} y="-44" width={68 - i * 12} height="34" />
+                <path class="j-ink" d={`M${-54 + i * 6} -44h${108 - i * 12}l-14 -12h${-80 + i * 12}z`} />
+              </g>
+            ))}
+            <line class="j-line" x1="0" y1="-232" x2="0" y2="-256" />
+          </g>
+          <path class="j-fill" d="M-20 0v-40h20v-10h14v10h14v-10h14v10h14v-10h14v10h20v40z" transform="translate(30 0)" />
+          <g class="plane plane--short"><path class="j-ink" d="M0 0l60-6 30-24h12l-14 26 40-4 10-12h8l-4 18 4 18h-8l-10-12-40-4 14 26h-12l-30-24-60-6z" /></g>
+          <g transform="translate(200 0)">
+            <line class="j-line" x1="0" y1="0" x2="0" y2="-60" />
+            <rect class="j-ink" x="-60" y="-94" width="120" height="36" rx="4" />
+            <text class="j-text j-text--rev" x="0" y="-70" text-anchor="middle">CHINA</text>
+          </g>
+        </g>
+
+        <g transform={`translate(${at.sea} ${G - LIFT})`}>
+          <path class="j-fill" d="M-260 0c10-60 20-150 50-160 26-8 30 90 40 160zM-160 0c8-40 14-110 36-116 20-4 26 70 34 116z" fill="url(#hatch)" />
+          <path class="j-fill" d="M-20 0v-60h80v60zM-30 -60l50-50 50 50zM-8 -110l28-40 28 40z" transform="translate(-10 0)" />
+          <line class="j-line" x1="10" y1="-150" x2="10" y2="-176" />
+          <g transform="translate(110 0)">
+            <circle class="j-fill" cx="-22" cy="-14" r="14" />
+            <circle class="j-fill" cx="26" cy="-14" r="14" />
+            <path class="j-fill" d="M-22 -14h24l12-26h18l-4 26" />
+            <line class="j-line" x1="30" y1="-40" x2="40" y2="-54" />
+          </g>
+          <g transform="translate(230 0)">
+            <line class="j-line" x1="0" y1="0" x2="0" y2="-60" />
+            <rect class="j-ink" x="-96" y="-94" width="192" height="36" rx="4" />
+            <text class="j-text j-text--rev" x="0" y="-70" text-anchor="middle">THAILAND · VIETNAM</text>
           </g>
         </g>
 
         <!-- 7. Family hospital, Kankavli -->
-        <g transform={`translate(${stops[6].x} ${G})`}>
+        <g transform={`translate(${at.hospital} ${G})`}>
           <path class="j-fill" d="M-170 -170h340v170h-340z" />
           {[-130, -70, 40, 100].map((x) => [-140, -90].map((y) => <rect class="j-fill" x={x} y={y} width="34" height="30" />))}
           <path class="j-fill" d="M-30 -66h60v66h-60z" />
@@ -239,7 +331,7 @@ const G = 430;
         </g>
 
         <!-- 8. Masters' Union -->
-        <g transform={`translate(${stops[7].x} ${G})`}>
+        <g transform={`translate(${at.mu} ${G})`}>
           <path class="j-fill" d="M-220 -200h440v200h-440z" />
           {Array.from({ length: 4 }, (_, r) => Array.from({ length: 8 }, (_, c) => <rect class="j-fill" x={-200 + c * 52} y={-184 + r * 44} width="40" height="30" />))}
           <rect class="j-ink" x="-220" y="-232" width="440" height="32" />
@@ -252,7 +344,7 @@ const G = 430;
         </g>
 
         <!-- 9. Building things -->
-        <g transform={`translate(${stops[8].x} ${G})`}>
+        <g transform={`translate(${at.build} ${G})`}>
           <path class="j-fill" d="M-360 -60h300v14h-300z" />
           <path class="j-line" d="M-340 -46V0M-80 -46V0" />
           <rect class="j-ink" x="-320" y="-82" width="70" height="22" rx="3" />
@@ -275,7 +367,52 @@ const G = 430;
           </g>
         </g>
 
-        <!-- Shivam. Feet at the origin; grows up as he walks. -->
+        <!-- Things in the way -->
+        {obstacles.map((o) => (
+          <g class={`obs obs--${o.kind}`} transform={`translate(${o.x} ${o.y})`}>
+            {o.kind === 'books' && (
+              <g>
+                <rect class="j-fill" x="-24" y="-14" width="48" height="14" />
+                <rect class="j-ink" x="-20" y="-26" width="42" height="12" />
+                <rect class="j-fill" x="-22" y="-40" width="40" height="14" />
+              </g>
+            )}
+            {o.kind === 'suitcase' && (
+              <g>
+                <rect class="j-fill" x="-26" y="-38" width="52" height="38" rx="5" />
+                <path class="j-line" d="M-10 -38v-8h20v8M-26 -20h52" />
+              </g>
+            )}
+            {o.kind === 'cone' && (
+              <g>
+                <path class="j-fill" d="M-22 0l16-44h12l16 44z" />
+                <path class="j-ink" d="M-14 -20h28l-4 -10h-20z" />
+              </g>
+            )}
+            {o.kind === 'bug' && (
+              <g>
+                <ellipse class="j-ink" cx="0" cy="-16" rx="22" ry="14" />
+                <path class="j-line" d="M-14 -6l-10 6M0 -4v8M14 -6l10 6M-10 -28l-8-10M10 -28l8-10" />
+                <text class="j-text j-text--rev j-text--small" x="0" y="-11" text-anchor="middle">BUG</text>
+              </g>
+            )}
+            {o.kind === 'deadline' && (
+              <g>
+                <rect class="j-ink" x="-40" y="-36" width="80" height="36" rx="3" />
+                <text class="j-text j-text--rev j-text--small" x="0" y="-13" text-anchor="middle">DEADLINE</text>
+              </g>
+            )}
+            {o.kind === 'rock' && <path class="j-fill" d="M-28 0l6-26 18-12 22 8 10 30z" fill="url(#hatch)" />}
+            {o.kind === 'papers' && (
+              <g>
+                <path class="j-fill" d="M-26 0v-12h52v12zM-22 -12v-12h46v12zM-24 -24v-12h48v12z" />
+                <text class="j-text j-text--small" x="0" y="-27" text-anchor="middle">FORMS</text>
+              </g>
+            )}
+          </g>
+        ))}
+
+        <!-- Shivam. Feet at the origin; grows up as he runs. -->
         <g class="hero" data-hero-walker>
           <g data-body>
             <g class="limb" data-leg-back><line class="j-limb" x1="0" y1="-62" x2="0" y2="-8" /><ellipse class="j-ink" cx="6" cy="-4" rx="12" ry="6" /></g>
@@ -294,41 +431,48 @@ const G = 430;
       </svg>
 
       <article class="jcard" data-card aria-live="polite">
-        <p class="jcard__when pen" data-card-when></p>
+        <p class="jcard__when pen"><span data-card-when></span> <span class="jcard__side" data-card-side hidden>side quest</span></p>
         <h2 class="jcard__title" data-card-title></h2>
         <p class="jcard__text" data-card-text></p>
-        <p class="jcard__links" data-card-links hidden>
-          <a href="/#products">See the products</a>
-          <a href="/future/">Build together</a>
-        </p>
       </article>
 
-      <div class="jpad">
-        <button class="jbtn" type="button" data-left aria-label="Walk back">
-          <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
-        </button>
-        <button class="jbtn jbtn--wide" type="button" data-auto aria-pressed="false">Walk for me</button>
-        <button class="jbtn" type="button" data-right aria-label="Walk forward">
-          <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
-        </button>
+      <p class="jhud pen" aria-hidden="true"><span data-hud-stops>0</span> of {stops.length} stops · <span data-hud-trips>0</span> stumbles</p>
+
+      <div class="jscreen" data-screen>
+        <div class="jscreen__box">
+          <h2 class="jscreen__title" data-screen-title>Run my journey</h2>
+          <p class="jscreen__text" data-screen-text>
+            Press <kbd>Space</kbd> or tap to start. Jump over whatever is in the way.
+          </p>
+          <p class="jscreen__links" data-screen-links hidden>
+            <button class="jbtn jbtn--wide" type="button" data-again>Run it again</button>
+            <a href="/#products">See the products</a>
+            <a href="/future/">Build together</a>
+          </p>
+        </div>
       </div>
+
+      <button class="jjump" type="button" data-jump>Jump</button>
     </div>
 
-    <nav class="jmap" aria-label="Stops on the journey">
-      <div class="jmap__line"><span data-map-fill></span></div>
-      <ol>
-        {
-          stops.map((s, i) => (
-            <li>
-              <button type="button" class="jmap__stop" data-stop={i} title={s.title}>
-                <span class="jmap__dot" />
-                <span class="jmap__label">{s.title.split(',')[0]}</span>
-              </button>
-            </li>
-          ))
-        }
+    <ol class="jmap" aria-label="Stops on the journey">
+      <li class="jmap__line" aria-hidden="true"><span data-map-fill></span></li>
+      {
+        stops.map((s, i) => (
+          <li class="jmap__stop" data-stop={i}>
+            <span class="jmap__dot" />
+            <span class="jmap__label">{s.side ? `${s.title.split(',')[0]} ↗` : s.title.split(',')[0]}</span>
+          </li>
+        ))
+      }
+    </ol>
+
+    <details class="jstory sheet">
+      <summary>Skip the game and read the story</summary>
+      <ol class="line">
+        {stops.map((s) => <li><span class="when">{s.when}</span><div><strong>{s.title}{s.side ? ' (side quest)' : ''}</strong><span class="what">{s.text}</span></div></li>)}
       </ol>
-    </nav>
+    </details>
   </section>
 
   <noscript>
@@ -340,208 +484,265 @@ const G = 430;
   </noscript>
 </Base>
 
-<script define:vars={{ stops, WORLD }}>
-  window.__journey = { stops, WORLD };
+<script define:vars={{ stops, WORLD, obstacles, sides, G, LIFT, RAMP, FLAT }}>
+  window.__journey = { stops, WORLD, obstacles, sides, G, LIFT, RAMP, FLAT };
 </script>
 
 <script>
-  type Stop = { key: string; when: string; title: string; text: string; x: number };
-  const { stops, WORLD } = (window as unknown as { __journey: { stops: Stop[]; WORLD: number } }).__journey;
+  type Stop = { key: string; side?: boolean; trip?: boolean; when: string; title: string; text: string; x: number };
+  type Obs = { x: number; kind: string; y: number };
+  const J = (window as unknown as { __journey: { stops: Stop[]; WORLD: number; obstacles: Obs[]; sides: number[]; G: number; LIFT: number; RAMP: number; FLAT: number } }).__journey;
+  const { stops, WORLD, obstacles, sides, G, LIFT, RAMP, FLAT } = J;
 
-  const root = document.querySelector<HTMLElement>('[data-journey]')!;
-  const stage = root.querySelector<HTMLElement>('[data-stage]')!;
-  const svg = root.querySelector<SVGSVGElement>('[data-world]')!;
-  const walker = root.querySelector<SVGGElement>('[data-hero-walker]')!;
-  const body = root.querySelector<SVGGElement>('[data-body]')!;
-  const legF = root.querySelector<SVGGElement>('[data-leg-front]')!;
-  const legB = root.querySelector<SVGGElement>('[data-leg-back]')!;
-  const armF = root.querySelector<SVGGElement>('[data-arm-front]')!;
-  const armB = root.querySelector<SVGGElement>('[data-arm-back]')!;
-  const beard = root.querySelector<SVGPathElement>('[data-beard]')!;
-  const pack = root.querySelector<SVGRectElement>('[data-pack]')!;
-  const card = root.querySelector<HTMLElement>('[data-card]')!;
-  const cWhen = root.querySelector<HTMLElement>('[data-card-when]')!;
-  const cTitle = root.querySelector<HTMLElement>('[data-card-title]')!;
-  const cText = root.querySelector<HTMLElement>('[data-card-text]')!;
-  const cLinks = root.querySelector<HTMLElement>('[data-card-links]')!;
-  const fill = root.querySelector<HTMLElement>('[data-map-fill]')!;
-  const stopBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-stop]')];
-  const autoBtn = root.querySelector<HTMLButtonElement>('[data-auto]')!;
+  const $ = <T extends Element>(sel: string) => document.querySelector<T>(sel)!;
+  const root = $<HTMLElement>('[data-journey]');
+  const stage = $<HTMLElement>('[data-stage]');
+  const svg = $<SVGSVGElement>('[data-world]');
+  const walker = $<SVGGElement>('[data-hero-walker]');
+  const body = $<SVGGElement>('[data-body]');
+  const legF = $<SVGGElement>('[data-leg-front]');
+  const legB = $<SVGGElement>('[data-leg-back]');
+  const armF = $<SVGGElement>('[data-arm-front]');
+  const armB = $<SVGGElement>('[data-arm-back]');
+  const beard = $<SVGPathElement>('[data-beard]');
+  const pack = $<SVGRectElement>('[data-pack]');
+  const card = $<HTMLElement>('[data-card]');
+  const screen = $<HTMLElement>('[data-screen]');
+  const sTitle = $<HTMLElement>('[data-screen-title]');
+  const sText = $<HTMLElement>('[data-screen-text]');
+  const sLinks = $<HTMLElement>('[data-screen-links]');
+  const hudStops = $<HTMLElement>('[data-hud-stops]');
+  const hudTrips = $<HTMLElement>('[data-hud-trips]');
+  const fill = $<HTMLElement>('[data-map-fill]');
+  const dots = [...document.querySelectorAll<HTMLElement>('[data-stop]')];
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const H = 540;
   const START = 160;
-  const END = WORLD - 260;
-  const SPEED = 300;
+  const END = WORLD - 300;
+  const GRAV = 2400;
+  const JUMP = 800;
   const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+  const smooth = (t: number) => t * t * (3 - 2 * t);
+  const groundY = (x: number) => {
+    for (const sx of sides) {
+      const d = Math.abs(x - sx);
+      if (d <= FLAT) return G - LIFT;
+      if (d < FLAT + RAMP) return G - LIFT * smooth((FLAT + RAMP - d) / RAMP);
+    }
+    return G;
+  };
+  const names: Record<string, string> = {
+    books: 'a pile of textbooks',
+    suitcase: 'a suitcase',
+    cone: 'a traffic cone',
+    bug: 'a bug',
+    deadline: 'a deadline',
+    rock: 'a rock',
+    papers: 'a stack of forms',
+  };
+  const hit: Record<string, [number, number]> = {
+    books: [24, 38], suitcase: [26, 36], cone: [18, 40], bug: [22, 26], deadline: [38, 34], rock: [26, 32], papers: [24, 34],
+  };
 
+  type State = 'ready' | 'run' | 'down' | 'done';
+  let state: State = 'ready';
   let x = START;
-  let dir = 1;
-  let hold = 0; // -1, 0, 1 from keys or buttons
-  let auto = false;
-  let target: number | null = null;
-  let pauseUntil = 0;
+  let y = G;
+  let vy = 0;
+  let grounded = true;
   let phase = 0;
+  let falls = 0;
+  let reached = -1;
   let shown = -1;
+  let fallT = 0;
   let last = performance.now();
 
-  // Grows from a kid at school to full height by engineering; the beard comes in from Pune.
-  const growth = (px: number) => clamp((px - stops[0].x + 300) / (stops[3].x - stops[0].x + 300));
-  const beardAt = (px: number) => clamp((px - stops[4].x + 250) / (stops[5].x - stops[4].x));
-  const packOn = (px: number) => px < stops[2].x - 300 || (px > stops[3].x - 400 && px < stops[3].x + 450) || (px > stops[5].x - 500 && px < stops[5].x + 500);
+  const at = Object.fromEntries(stops.map((s) => [s.key, s.x])) as Record<string, number>;
+  const tripXs = stops.filter((s) => s.trip).map((s) => s.x);
+  const growth = (px: number) => clamp((px - at.school + 300) / (at.college - at.school + 300));
+  // Stubble in Pune, a full beard by China.
+  const beardAt = (px: number) => clamp((px - at.pune + 250) / (at.china - at.pune));
+  const packOn = (px: number) =>
+    px < at.cafe - 300 || Math.abs(px - at.college) < 420 || tripXs.some((t) => Math.abs(px - t) < FLAT + RAMP + 60);
+  const speed = () => 330 + Math.max(0, reached) * 14;
 
-  const view = () => {
-    const w = (stage.clientWidth / stage.clientHeight) * H;
-    const cam = clamp(x - w * 0.32, 0, Math.max(0, WORLD - w));
-    svg.setAttribute('viewBox', `${cam} 0 ${w} ${H}`);
+  const say = (title: string, html: string, links = false) => {
+    sTitle.textContent = title;
+    sText.innerHTML = html;
+    sLinks.hidden = !links;
+    screen.classList.add('is-on');
   };
 
   const showStop = (i: number) => {
-    if (i === shown) return;
+    if (i === shown || i < 0) return;
     shown = i;
-    stopBtns.forEach((b, k) => b.setAttribute('aria-current', String(k === i)));
-    if (i < 0) {
-      card.classList.remove('is-on');
-      return;
-    }
     const s = stops[i];
-    cWhen.textContent = s.when;
-    cTitle.textContent = s.title;
-    cText.textContent = s.text;
-    cLinks.hidden = s.key !== 'build';
+    $<HTMLElement>('[data-card-when]').textContent = s.when;
+    const badge = $<HTMLElement>('[data-card-side]');
+    badge.hidden = !s.side;
+    badge.textContent = s.trip ? 'off the main road' : 'side quest';
+    $<HTMLElement>('[data-card-title]').textContent = s.title;
+    $<HTMLElement>('[data-card-text]').textContent = s.text;
     card.classList.remove('is-on');
     void card.offsetWidth;
     card.classList.add('is-on');
   };
 
-  const draw = (moving: boolean) => {
+  const view = () => {
+    const w = (stage.clientWidth / stage.clientHeight) * H;
+    const cam = clamp(x - w * 0.26, 0, Math.max(0, WORLD - w));
+    svg.setAttribute('viewBox', `${cam} 0 ${w} ${H}`);
+  };
+
+  const draw = () => {
     const g = 0.62 + 0.38 * growth(x);
-    walker.setAttribute('transform', `translate(${x} 430) scale(${dir * g} ${g})`);
+    const tilt = state === 'down' ? -78 * smooth(clamp(fallT / 0.35)) : 0;
+    walker.setAttribute('transform', `translate(${x} ${y}) rotate(${tilt}) scale(${g} ${g})`);
     beard.style.opacity = String(beardAt(x));
     beard.style.transform = `scale(1, ${0.4 + 0.6 * beardAt(x)})`;
     pack.style.opacity = packOn(x) ? '1' : '0';
-    const swing = moving && !still ? Math.sin(phase) : 0;
-    legF.setAttribute('transform', `rotate(${swing * 26} 0 -62)`);
-    legB.setAttribute('transform', `rotate(${-swing * 26} 0 -62)`);
-    armF.setAttribute('transform', `rotate(${-swing * 24} 0 -128)`);
-    armB.setAttribute('transform', `rotate(${swing * 24} 0 -128)`);
-    body.setAttribute('transform', `translate(0 ${moving && !still ? -Math.abs(Math.sin(phase)) * 4 : 0})`);
-    fill.style.transform = `scaleX(${(x - START) / (END - START)})`;
-    let near = -1;
-    stops.forEach((s, i) => {
-      if (Math.abs(x - s.x) < 420) near = i;
-    });
-    showStop(near);
+    const running = state === 'run' && grounded && !still;
+    const sw = running ? Math.sin(phase) : 0;
+    const air = state === 'run' && !grounded;
+    legF.setAttribute('transform', `rotate(${air ? -32 : sw * 30} 0 -62)`);
+    legB.setAttribute('transform', `rotate(${air ? 22 : -sw * 30} 0 -62)`);
+    armF.setAttribute('transform', `rotate(${air ? -120 : -sw * 34} 0 -128)`);
+    armB.setAttribute('transform', `rotate(${air ? 40 : sw * 34} 0 -128)`);
+    body.setAttribute('transform', `translate(0 ${running ? -Math.abs(Math.sin(phase)) * 5 : 0})`);
+    fill.style.transform = `scaleX(${clamp((x - START) / (END - START))})`;
     view();
   };
 
+  const start = () => {
+    screen.classList.remove('is-on');
+    state = 'run';
+    root.classList.add('is-playing');
+  };
+
+  const restart = () => {
+    x = START;
+    y = G;
+    vy = 0;
+    grounded = true;
+    falls = 0;
+    reached = -1;
+    shown = -1;
+    hudTrips.textContent = '0';
+    hudStops.textContent = '0';
+    dots.forEach((d) => d.classList.remove('is-passed'));
+    card.classList.remove('is-on');
+    start();
+  };
+
+  const getUp = () => {
+    // Back to the last stop reached, a little before it.
+    x = reached >= 0 ? stops[reached].x - 120 : START;
+    y = groundY(x);
+    vy = 0;
+    grounded = true;
+    fallT = 0;
+    start();
+  };
+
+  const act = () => {
+    if (state === 'ready') return start();
+    if (state === 'down') return getUp();
+    if (state === 'done') return restart();
+    if (grounded) {
+      vy = -JUMP;
+      grounded = false;
+    }
+  };
+
   const tick = (now: number) => {
-    const dt = Math.min(0.05, (now - last) / 1000);
+    const dt = Math.min(0.04, (now - last) / 1000);
     last = now;
-    let v = 0;
-    if (hold) {
-      v = hold;
-      target = null;
-      auto = false;
-    } else if (target !== null) {
-      const d = target - x;
-      if (Math.abs(d) < 6) {
-        x = target;
-        target = null;
-      } else v = Math.sign(d);
-    } else if (auto && now > pauseUntil) {
-      v = 1;
-      // Pause at each stop so the card can be read.
-      const next = stops.find((s) => s.x > x + 1);
-      if (next && x + SPEED * 0.7 * dt >= next.x) {
-        x = next.x;
-        pauseUntil = now + 2600;
-        v = 0;
+
+    if (state === 'run') {
+      const v = speed();
+      x = Math.min(END, x + v * dt);
+      phase += v * dt * 0.05;
+      const floor = groundY(x);
+      if (grounded) y = floor;
+      else {
+        vy += GRAV * dt;
+        y += vy * dt;
+        if (y >= floor) {
+          y = floor;
+          vy = 0;
+          grounded = true;
+        }
       }
-      if (x >= END) auto = false;
+
+      // Stops passed
+      stops.forEach((s, i) => {
+        if (i > reached && x >= s.x - 160) {
+          reached = i;
+          hudStops.textContent = String(i + 1);
+          dots[i]?.classList.add('is-passed');
+          showStop(i);
+        }
+      });
+
+      // Collisions
+      for (const o of obstacles) {
+        const [hw, hh] = hit[o.kind];
+        if (Math.abs(x - o.x) < hw + 10 && y > o.y - hh + 4) {
+          state = 'down';
+          fallT = 0;
+          falls += 1;
+          hudTrips.textContent = String(falls);
+          root.classList.remove('is-playing');
+          say('Oops.', `Tripped over ${names[o.kind]}. Press <kbd>Space</kbd> or tap to get up.`);
+          break;
+        }
+      }
+
+      if (x >= END) {
+        state = 'done';
+        root.classList.remove('is-playing');
+        say(
+          'You made it to now.',
+          `All ${stops.length} stops, side quests included, with ${falls} ${falls === 1 ? 'stumble' : 'stumbles'} on the way. The path keeps going.`,
+          true,
+        );
+      }
+    } else if (state === 'down') {
+      fallT += dt;
     }
-    autoBtn.setAttribute('aria-pressed', String(auto));
-    autoBtn.textContent = auto ? 'Pause' : 'Walk for me';
-    if (v) {
-      dir = v;
-      const speed = auto && target === null && !hold ? SPEED * 0.7 : SPEED;
-      x = clamp(x + v * speed * dt, START, END);
-      phase += speed * dt * 0.045;
-      root.classList.add('has-walked');
-    }
-    draw(v !== 0);
+
+    draw();
     requestAnimationFrame(tick);
   };
 
-  // ---------- Controls ----------
-  const keys = new Set<string>();
-  const fromKeys = () => {
-    hold = (keys.has('right') ? 1 : 0) - (keys.has('left') ? 1 : 0);
-  };
+  // ---------- Input ----------
   addEventListener('keydown', (e) => {
-    if (e.target instanceof HTMLElement && e.target.closest('input, textarea')) return;
     const k = e.key;
-    if (k === 'ArrowRight' || k === 'd' || k === 'D') keys.add('right');
-    else if (k === 'ArrowLeft' || k === 'a' || k === 'A') keys.add('left');
-    else return;
+    if (k !== ' ' && k !== 'ArrowUp' && k !== 'w' && k !== 'W') return;
+    const t = e.target;
+    if (t instanceof Element && t.closest('a, button, input, textarea, summary, select') && !t.closest('[data-jump]')) return;
     e.preventDefault();
-    fromKeys();
+    if (!e.repeat) act();
   });
-  addEventListener('keyup', (e) => {
-    const k = e.key;
-    if (k === 'ArrowRight' || k === 'd' || k === 'D') keys.delete('right');
-    if (k === 'ArrowLeft' || k === 'a' || k === 'A') keys.delete('left');
-    fromKeys();
+  stage.addEventListener('pointerdown', (e) => {
+    if ((e.target as HTMLElement).closest('a, button')) return;
+    e.preventDefault();
+    act();
   });
-  addEventListener('blur', () => {
-    keys.clear();
-    hold = 0;
+  $<HTMLButtonElement>('[data-jump]').addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    act();
   });
-
-  const holdButton = (btn: HTMLElement, v: number) => {
-    const down = (e: PointerEvent) => {
-      e.preventDefault();
-      btn.setPointerCapture(e.pointerId);
-      hold = v;
-    };
-    const up = () => (hold = 0);
-    btn.addEventListener('pointerdown', down);
-    btn.addEventListener('pointerup', up);
-    btn.addEventListener('pointercancel', up);
-    btn.addEventListener('contextmenu', (e) => e.preventDefault());
-    // Keyboard users: one press moves to the next or previous stop.
-    btn.addEventListener('click', (e) => {
-      if ((e as PointerEvent).pointerType) return;
-      const i = v > 0 ? stops.findIndex((s) => s.x > x + 1) : stops.map((s) => s.x).findLastIndex((sx) => sx < x - 1);
-      if (i >= 0) goTo(i);
-    });
-  };
-  holdButton(root.querySelector('[data-right]')!, 1);
-  holdButton(root.querySelector('[data-left]')!, -1);
-
-  const goTo = (i: number) => {
-    auto = false;
-    if (still) {
-      x = stops[i].x;
-      dir = 1;
-      draw(false);
-    } else target = stops[i].x;
-  };
-  stopBtns.forEach((b, i) => b.addEventListener('click', () => goTo(i)));
-
-  autoBtn.addEventListener('click', () => {
-    if (still) {
-      const i = stops.findIndex((s) => s.x > x + 1);
-      return goTo(i >= 0 ? i : 0);
-    }
-    if (!auto && x >= END - 1) x = START;
-    auto = !auto;
-    target = null;
-    pauseUntil = 0;
+  $<HTMLButtonElement>('[data-jump]').addEventListener('click', (e) => {
+    if (!(e as PointerEvent).pointerType) act();
   });
+  $<HTMLButtonElement>('[data-again]').addEventListener('click', restart);
 
-  addEventListener('resize', () => draw(false));
-  draw(false);
+  addEventListener('resize', draw);
+  y = groundY(x);
+  say('Run my journey', 'Press <kbd>Space</kbd> or tap to start. Jump over whatever is in the way.');
+  draw();
   requestAnimationFrame(tick);
 </script>
 
@@ -791,6 +992,20 @@ const G = 430;
     }
   }
 
+  .plane--short {
+    animation: fly-short 6s linear infinite;
+  }
+
+  @keyframes fly-short {
+    from {
+      transform: translate(-280px, -250px);
+    }
+
+    to {
+      transform: translate(280px, -280px);
+    }
+  }
+
   .wave {
     animation: wave 2s ease-in-out infinite alternate;
   }
@@ -894,74 +1109,176 @@ const G = 430;
     min-height: 2.75rem;
   }
 
-  /* Controls */
-  .jpad {
+  .j-ridge {
+    stroke: none;
+    opacity: 0.18;
+  }
+
+  .jcard__side {
+    margin-left: 0.4rem;
+    padding: 0.05rem 0.5rem;
+    border-radius: 999px;
+    background: var(--j-ink);
+    color: var(--j-paper);
+    font-size: 0.85rem;
+  }
+
+  .jcard__side[hidden] {
+    display: none;
+  }
+
+  /* Score */
+  .jhud {
     position: absolute;
-    left: 50%;
-    bottom: 0.75rem;
+    left: 1rem;
+    top: 0.9rem;
+    margin: 0;
+    font-size: var(--step-0);
+    color: var(--j-ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Start, tripped and finish screens */
+  .jscreen {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    background: color-mix(in srgb, var(--j-paper) 55%, transparent);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 250ms var(--ease-out),
+      visibility 0s 250ms;
+  }
+
+  .jscreen.is-on {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 250ms var(--ease-out);
+  }
+
+  .jscreen__box {
+    max-width: 28rem;
+    padding: 1.25rem 1.5rem 1.4rem;
+    background: var(--j-paper);
+    border: 2px solid var(--j-ink);
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .jscreen__title {
+    font-size: var(--step-3);
+    line-height: 1.05;
+  }
+
+  .jscreen__text {
+    margin-top: 0.6rem;
+    line-height: 1.5;
+  }
+
+  .jscreen__links {
     display: flex;
-    gap: 0.5rem;
-    transform: translateX(-50%);
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem 1.25rem;
+    margin-top: 1rem;
+    font-weight: 600;
+  }
+
+  .jscreen__links[hidden] {
+    display: none;
+  }
+
+  .jscreen__links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+
+  kbd {
+    display: inline-block;
+    padding: 0 0.45rem;
+    border: 1.5px solid currentColor;
+    border-bottom-width: 3px;
+    border-radius: 5px;
+    font-family: var(--font-text);
+    font-size: 0.85em;
+    line-height: 1.5;
   }
 
   .jbtn {
     all: unset;
     box-sizing: border-box;
-    display: grid;
+    display: inline-grid;
     place-items: center;
-    min-width: 3.25rem;
-    height: 3.25rem;
-    padding: 0 0.6rem;
-    background: var(--j-paper);
-    border: 2px solid var(--j-ink);
+    min-height: 2.75rem;
+    padding: 0 1.25rem;
+    background: var(--j-ink);
+    color: var(--j-paper);
     border-radius: 999px;
     font-weight: 600;
+    cursor: pointer;
+  }
+
+  .jbtn:focus-visible,
+  .jjump:focus-visible {
+    outline: 3px solid var(--j-ink);
+    outline-offset: 3px;
+  }
+
+  /* Big jump button, for thumbs; on a laptop Space does the same */
+  .jjump {
+    all: unset;
+    box-sizing: border-box;
+    position: absolute;
+    right: 1rem;
+    bottom: 1rem;
+    display: grid;
+    place-items: center;
+    width: 4.5rem;
+    height: 4.5rem;
+    border: 2px solid var(--j-ink);
+    border-radius: 50%;
+    background: var(--j-paper);
+    font-weight: 700;
     cursor: pointer;
     touch-action: none;
     -webkit-tap-highlight-color: transparent;
   }
 
-  .jbtn--wide {
-    padding: 0 1.25rem;
-  }
-
-  .jbtn path {
-    fill: none;
-    stroke: var(--j-ink);
-    stroke-width: 2.4;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-
-  .jbtn:active,
-  .jbtn[aria-pressed='true'] {
+  .jjump:active {
     background: var(--j-ink);
     color: var(--j-paper);
   }
 
-  .jbtn:active path {
-    stroke: var(--j-paper);
+  @media (hover: hover) {
+    .jjump {
+      width: auto;
+      height: auto;
+      padding: 0.5rem 1rem;
+      border-radius: 999px;
+    }
   }
 
-  .jbtn:focus-visible,
-  .jmap__stop:focus-visible {
-    outline: 3px solid var(--j-ink);
-    outline-offset: 3px;
-  }
-
-  /* Map of the stops */
+  /* Progress map */
   .jmap {
     position: relative;
+    display: flex;
+    justify-content: space-between;
     max-width: var(--sheet);
     margin: 0 auto;
-    padding: 1.25rem var(--pad-right) 2rem var(--pad-left);
+    padding: 1.25rem var(--pad-right) 1.5rem var(--pad-left);
+    list-style: none;
   }
 
   .jmap__line {
     position: absolute;
     left: calc(var(--pad-left) + 1.5rem);
     right: calc(var(--pad-right) + 1.5rem);
-    top: 2.6rem;
+    top: 1.95rem;
     height: 2px;
     background: color-mix(in srgb, var(--j-ink) 20%, transparent);
   }
@@ -974,25 +1291,12 @@ const G = 430;
     transform-origin: left center;
   }
 
-  .jmap ol {
-    position: relative;
-    display: flex;
-    justify-content: space-between;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-
   .jmap__stop {
-    all: unset;
-    box-sizing: border-box;
+    position: relative;
     display: grid;
     justify-items: center;
     gap: 0.3rem;
     width: 3rem;
-    min-height: 2.75rem;
-    padding-top: 0.6rem;
-    cursor: pointer;
   }
 
   .jmap__dot {
@@ -1004,9 +1308,8 @@ const G = 430;
     transition: transform 250ms var(--ease-out), background-color 250ms;
   }
 
-  .jmap__stop[aria-current='true'] .jmap__dot {
+  .jmap__stop.is-passed .jmap__dot {
     background: var(--j-ink);
-    transform: scale(1.4);
   }
 
   .jmap__label {
@@ -1017,8 +1320,24 @@ const G = 430;
     color: var(--j-soft);
   }
 
-  .jmap__stop[aria-current='true'] .jmap__label {
+  .jmap__stop.is-passed .jmap__label {
     color: var(--j-ink);
+  }
+
+  .jstory {
+    padding-bottom: 2rem;
+  }
+
+  .jstory summary {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .jstory .line {
+    margin-top: 0.75rem;
   }
 
   @media (max-width: 48rem) {
@@ -1027,7 +1346,13 @@ const G = 430;
     }
 
     .jmap__stop {
-      width: 2.1rem;
+      width: 1.6rem;
+    }
+
+    .jhud {
+      top: auto;
+      bottom: 1.2rem;
+      left: 1rem;
     }
 
     .jcard {
@@ -1055,6 +1380,7 @@ const G = 430;
     .spark,
     .note,
     .plane,
+    .plane--short,
     .wave,
     .cap {
       animation: none;
