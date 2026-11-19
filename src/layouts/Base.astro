@@ -44,6 +44,12 @@ const isCurrent = (href: string) => path === href || (href !== '/' && path.start
     <meta name="twitter:card" content="summary_large_image" />
     <script is:inline>
       document.documentElement.classList.add('js');
+      try {
+        if (localStorage.getItem('theme') === 'dark') {
+          document.documentElement.dataset.theme = 'dark';
+          document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#172036');
+        }
+      } catch (e) {}
     </script>
   </head>
   <body>

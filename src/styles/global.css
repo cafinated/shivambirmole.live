@@ -258,7 +258,7 @@ a:hover {
 }
 
 .button:hover {
-  background: oklch(0.17 0.04 258);
+  background: color-mix(in oklch, var(--ink) 86%, var(--paper));
 }
 
 .button:active {

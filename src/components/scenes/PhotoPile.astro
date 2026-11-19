@@ -1,6 +1,7 @@
 ---
-// Real photographs as one collage, all visible at once, no captions.
-// Each photo has a slot (`area`) in the grid; add photos by adding entries and a slot in scenes.css.
+// Travel photos as a slider: one photo at a time, the next one peeking in.
+// Arrows, dots, swipe, and the keyboard's arrow keys all move it. No captions.
+// To add a photo, import it and add an entry to `photos`.
 import { Image } from 'astro:assets';
 import vietnam from '../../assets/images/travel-vietnam.jpg';
 import rappel from '../../assets/images/waterfall-rappel.jpg';
@@ -11,44 +12,102 @@ import sheep from '../../assets/images/valley-sheep.jpg';
 import pillars from '../../assets/images/forest-pillars.jpg';
 
 const photos = [
-  { src: snow, area: 'snow', alt: 'A person in a yellow hooded jacket setting up a tripod on a snowy summit, with an orange horizon and haze over the valley below.' },
-  { src: sea, area: 'sea', alt: 'A person floating on their back in clear turquoise water, with sailboats anchored behind and pine-covered islands on the horizon.' },
-  { src: vietnam, area: 'vietnam', alt: 'Three travellers sitting on parked scooters on a gravel shore in Vietnam, with green limestone hills and still water behind them.' },
-  { src: sheep, area: 'sheep', alt: 'Two sheep, one white and one black, grazing on a green slope above a valley thick with pine trees.' },
-  { src: rappel, area: 'rappel', alt: 'Shivam in an orange helmet and a red life vest, leaning back on a rope as he rappels down a waterfall, with forest behind him.' },
-  { src: pillars, area: 'pillars', alt: 'A person with a backpack walking a stone path through green forest towards tall sandstone pillars in the mist.' },
-  { src: bike, area: 'bike', alt: 'A loaded motorcycle parked at dusk beside a small brick building, with hills and an orange sky behind it.' },
+  { src: snow, alt: 'A person in a yellow hooded jacket setting up a tripod on a snowy summit, with an orange horizon and haze over the valley below.' },
+  { src: sea, alt: 'A person floating on their back in clear turquoise water, with sailboats anchored behind and pine-covered islands on the horizon.' },
+  { src: vietnam, alt: 'Three travellers sitting on parked scooters on a gravel shore in Vietnam, with green limestone hills and still water behind them.' },
+  { src: pillars, alt: 'A person with a backpack walking a stone path through green forest towards tall sandstone pillars in the mist.' },
+  { src: bike, alt: 'A loaded motorcycle parked at dusk beside a small brick building, with hills and an orange sky behind it.' },
+  { src: sheep, alt: 'Two sheep, one white and one black, grazing on a green slope above a valley thick with pine trees.' },
+  { src: rappel, alt: 'Shivam in an orange helmet and a red life vest, leaning back on a rope as he rappels down a waterfall, with forest behind him.' },
 ];
 ---
 
-<div class="collage" data-collage>
-  {
-    photos.map((p) => (
-      <figure class={`collage__item collage__item--${p.area}`} data-photo>
-        <Image src={p.src} alt={p.alt} widths={[480, 960]} sizes="(min-width: 60rem) 28vw, 50vw" />
-      </figure>
-    ))
-  }
+<div class="slider" data-slider role="region" aria-roledescription="carousel" aria-label="Travel photos">
+  <ul class="slider__track" data-track tabindex="0">
+    {
+      photos.map((p, i) => (
+        <li class="slide" data-slide aria-roledescription="slide" aria-label={`${i + 1} of ${photos.length}`}>
+          <Image src={p.src} alt={p.alt} widths={[520, 1040]} sizes="(min-width: 48rem) 34rem, 80vw" loading={i < 2 ? 'eager' : 'lazy'} draggable="false" />
+        </li>
+      ))
+    }
+  </ul>
+  <div class="slider__bar">
+    <button class="slider__btn" type="button" data-prev aria-label="Previous photo">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+    </button>
+    <div class="slider__dots" role="group" aria-label="Choose a photo">
+      {photos.map((_, i) => <button class="slider__dot" type="button" data-dot={i} aria-label={`Photo ${i + 1}`} />)}
+    </div>
+    <button class="slider__btn" type="button" data-next aria-label="Next photo">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
+    </button>
+    <span class="slider__count pen" data-count aria-live="polite">1 / {photos.length}</span>
+  </div>
 </div>
 
 <script>
-  import { animate, inView, stagger } from 'motion';
-  import { reduceMotion } from '../../scripts/motion-utils';
+  document.querySelectorAll<HTMLElement>('[data-slider]').forEach((root) => {
+    const track = root.querySelector<HTMLElement>('[data-track]')!;
+    const slides = [...root.querySelectorAll<HTMLElement>('[data-slide]')];
+    const dots = [...root.querySelectorAll<HTMLButtonElement>('[data-dot]')];
+    const count = root.querySelector<HTMLElement>('[data-count]')!;
+    const smooth = matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+    let current = 0;
 
-  document.querySelectorAll<HTMLElement>('[data-collage]').forEach((collage) => {
-    if (reduceMotion()) return;
-    const items = collage.querySelectorAll<HTMLElement>('[data-photo]');
-    items.forEach((el) => (el.style.opacity = '0'));
-    inView(
-      collage,
-      () => {
-        animate(
-          items,
-          { opacity: [0, 1], scale: [0.92, 1], clipPath: ['inset(12% 12% 12% 12% round 6px)', 'inset(0% 0% 0% 0% round 6px)'] },
-          { duration: 0.9, delay: stagger(0.08), ease: [0.16, 1, 0.3, 1] },
-        );
-      },
-      { amount: 0.1 },
-    );
+    let moving = 0;
+    const go = (i: number, instant = false) => {
+      const n = (i + slides.length) % slides.length;
+      const s = slides[n];
+      // Mark it straight away, so quick repeated clicks keep counting from the right photo.
+      mark(n);
+      clearTimeout(moving);
+      moving = window.setTimeout(() => (moving = 0), 700);
+      track.scrollTo({
+        left: s.offsetLeft - (track.clientWidth - s.offsetWidth) / 2,
+        behavior: (instant ? 'auto' : smooth) as ScrollBehavior,
+      });
+    };
+
+    const mark = (i: number) => {
+      current = i;
+      dots.forEach((d, k) => d.setAttribute('aria-current', String(k === i)));
+      slides.forEach((s, k) => s.classList.toggle('is-current', k === i));
+      count.textContent = `${i + 1} / ${slides.length}`;
+    };
+
+    // Whichever slide is closest to the middle is the current one.
+    let frame = 0;
+    const nearest = () => {
+      frame = 0;
+      if (moving) return;
+      const mid = track.scrollLeft + track.clientWidth / 2;
+      let best = 0;
+      let dist = Infinity;
+      slides.forEach((sl, k) => {
+        const d = Math.abs(sl.offsetLeft + sl.offsetWidth / 2 - mid);
+        if (d < dist) (dist = d), (best = k);
+      });
+      if (best !== current) mark(best);
+    };
+    track.addEventListener('scroll', () => {
+      if (!frame) frame = requestAnimationFrame(nearest);
+    });
+
+    root.querySelector('[data-prev]')!.addEventListener('click', () => go(current - 1));
+    root.querySelector('[data-next]')!.addEventListener('click', () => go(current + 1));
+    dots.forEach((d, i) => d.addEventListener('click', () => go(i)));
+    slides.forEach((s, i) => s.addEventListener('click', () => i !== current && go(i)));
+    track.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') (e.preventDefault(), go(current + 1));
+      if (e.key === 'ArrowLeft') (e.preventDefault(), go(current - 1));
+    });
+    mark(0);
+    // Centre the first photo once the images have a size.
+    const centre = () => go(0, true);
+    const first = slides[0].querySelector('img');
+    if (first && !first.complete) first.addEventListener('load', centre, { once: true });
+    else centre();
+    addEventListener('load', centre, { once: true });
   });
 </script>

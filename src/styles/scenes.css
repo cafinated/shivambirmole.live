@@ -615,7 +615,7 @@
 }
 
 .sim__btn--solid:hover {
-  background: oklch(0.17 0.04 258);
+  background: color-mix(in oklch, var(--ink) 86%, var(--paper));
 }
 
 .sim__btn:active,
@@ -1279,56 +1279,147 @@
   margin-top: var(--space-2);
 }
 
-.collage {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  grid-auto-rows: min(8rem, 15svh);
-  grid-template-areas:
-    'snow sea sheep'
-    'snow sea sheep'
-    'vietnam vietnam rappel'
-    'pillars bike rappel'
-    'pillars bike rappel';
-  gap: 0.4rem;
+.slider {
   margin-top: var(--space-6);
 }
 
-.collage__item {
+.slider__track {
+  position: relative;
+  display: flex;
+  gap: var(--space-4);
+  list-style: none;
   margin: 0;
+  padding: var(--space-2) 0 var(--space-4);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  /* Room so the first and last photo can sit in the middle. */
+  padding-inline: calc(50% - 7rem);
+}
+
+.slider__track::-webkit-scrollbar {
+  display: none;
+}
+
+.slider__track:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 4px;
+}
+
+.slide {
+  flex: none;
+  height: min(68vh, 36rem);
+  scroll-snap-align: center;
+  border-radius: 8px;
   overflow: hidden;
-  border-radius: 6px;
   background: var(--paper-shade);
+  opacity: 0.45;
+  transform: scale(0.94);
+  transition:
+    opacity 500ms var(--ease-out),
+    transform 600ms var(--ease-out);
+  cursor: pointer;
 }
 
-.collage__item img {
-  width: 100%;
+.slide.is-current {
+  opacity: 1;
+  transform: scale(1);
+  cursor: default;
+}
+
+.slide img {
   height: 100%;
+  width: auto;
+  max-width: 80vw;
   object-fit: cover;
-  transition: transform 700ms var(--ease-out);
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
-.collage__item:hover img {
-  transform: scale(1.05);
+.slider__bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  margin-top: var(--space-3);
 }
 
-.collage__item--snow { grid-area: snow; }
-.collage__item--sea { grid-area: sea; }
-.collage__item--vietnam { grid-area: vietnam; }
-.collage__item--sheep { grid-area: sheep; }
-.collage__item--rappel { grid-area: rappel; }
-.collage__item--pillars { grid-area: pillars; }
-.collage__item--bike { grid-area: bike; }
+.slider__btn {
+  all: unset;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background-color 200ms var(--ease-out), border-color 200ms var(--ease-out);
+}
 
-/* Wide screens: every photo on one screen. */
-@media (min-width: 60rem) {
-  .collage {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    grid-template-rows: repeat(2, min(36vh, 19rem));
-    grid-auto-rows: auto;
-    grid-template-areas:
-      'snow sea vietnam vietnam sheep'
-      'snow rappel pillars bike sheep';
-    gap: 0.75rem;
+.slider__btn path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.slider__btn:hover {
+  background: var(--highlight);
+  border-color: var(--ink);
+}
+
+.slider__btn:focus-visible,
+.slider__dot:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.slider__dots {
+  display: flex;
+  gap: 0.15rem;
+}
+
+.slider__dot {
+  all: unset;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 2.75rem;
+  cursor: pointer;
+}
+
+.slider__dot::before {
+  content: '';
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: var(--rule);
+  transition: width 350ms var(--ease-out), background-color 300ms var(--ease-out);
+}
+
+.slider__dot[aria-current='true']::before {
+  width: 1.3rem;
+  background: var(--red);
+}
+
+.slider__count {
+  min-width: 3.5rem;
+  color: var(--ink-soft);
+  font-size: var(--step-0);
+}
+
+@media (max-width: 40rem) {
+  .slide {
+    height: min(58vh, 28rem);
+  }
+
+  .slider__dots {
+    display: none;
   }
 }
 
@@ -1422,7 +1513,7 @@
   }
 
   .topbar,
-  .collage__item img {
+  .slide {
     transition: none !important;
   }
 }
@@ -1797,7 +1888,7 @@ html.is-loading {
 
 /* Photos and cards sit on the ice with a soft edge. */
 .photo img,
-.collage__item {
+.slide {
   box-shadow: 0 0 0 1px oklch(0.24 0.04 258 / 0.08);
 }
 
@@ -2167,4 +2258,157 @@ html.is-loading {
 
 .together__cta {
   margin-top: var(--space-5);
+}
+
+/* ---------- Dark theme (the lamp is off): the dusk palette ---------- */
+
+:root[data-theme='dark'] {
+  --paper: oklch(0.21 0.04 258);
+  --paper-shade: oklch(0.26 0.045 258);
+  --night-deep: oklch(0.16 0.035 258);
+  --ink: oklch(0.94 0.012 80);
+  --ink-soft: oklch(0.77 0.02 250);
+  --rule: oklch(0.94 0.012 80 / 0.18);
+  --rule-faint: oklch(0.94 0.012 80 / 0.09);
+  --red: oklch(0.76 0.13 55);
+  --margin-line: oklch(0.76 0.13 55 / 0.5);
+  --olive: oklch(0.74 0.14 50);
+  --highlight: oklch(0.94 0.012 80 / 0.12);
+  --scrap: oklch(0.28 0.045 258);
+  --paper-soft: oklch(0.77 0.02 250);
+  --shadow-ink: oklch(0 0 0 / 0.55);
+  color-scheme: dark;
+}
+
+:root[data-theme='dark'] .project {
+  box-shadow: none;
+}
+
+:root[data-theme='dark'] .photo img,
+:root[data-theme='dark'] .slide {
+  box-shadow: 0 0 0 1px oklch(0.94 0.012 80 / 0.08);
+}
+
+/* The switch itself: the new theme opens out in a circle from the lamp. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* ---------- The lamp ---------- */
+
+.lamp {
+  all: unset;
+  box-sizing: border-box;
+  position: absolute;
+  z-index: 4;
+  top: 4.75rem;
+  right: clamp(1rem, 9vw, 9rem);
+  display: grid;
+  justify-items: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.lamp:focus-visible {
+  outline: 2px solid oklch(0.95 0.012 80);
+  outline-offset: 6px;
+  border-radius: 8px;
+}
+
+.lamp__swing {
+  display: block;
+  transform-origin: 50% 0;
+}
+
+.lamp__svg {
+  display: block;
+  width: clamp(56px, 6vw, 80px);
+  height: auto;
+  overflow: visible;
+}
+
+.lamp__cord {
+  stroke: oklch(0.95 0.012 80 / 0.7);
+  stroke-width: 1.5;
+}
+
+.lamp__shade {
+  fill: oklch(0.95 0.012 80);
+  transition: fill 400ms var(--ease-out);
+}
+
+.lamp__bulb {
+  fill: oklch(0.82 0.15 70);
+  filter: drop-shadow(0 0 10px oklch(0.82 0.15 70)) drop-shadow(0 0 26px oklch(0.75 0.15 55 / 0.8));
+  transition: fill 400ms var(--ease-out), filter 400ms var(--ease-out);
+}
+
+.lamp__ray {
+  fill: none;
+  stroke: oklch(0.82 0.15 70);
+  stroke-width: 2;
+  stroke-linecap: round;
+  transition: opacity 300ms var(--ease-out);
+}
+
+.lamp__hint {
+  margin-top: 0.25rem;
+  font-size: var(--step-0);
+  color: oklch(0.92 0.015 80);
+  white-space: nowrap;
+  transition: opacity 300ms var(--ease-out);
+}
+
+.lamp:hover .lamp__hint,
+.lamp:focus-visible .lamp__hint {
+  color: oklch(0.82 0.15 70);
+}
+
+:root[data-theme='dark'] .lamp__shade {
+  fill: oklch(0.6 0.02 250);
+}
+
+:root[data-theme='dark'] .lamp__bulb {
+  fill: oklch(0.45 0.02 250);
+  filter: none;
+}
+
+:root[data-theme='dark'] .lamp__ray {
+  opacity: 0;
+}
+
+/* Lamp light warms the scene; switched off, the scene goes darker. */
+.ph__glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at calc(100% - clamp(1rem, 9vw, 9rem) - 2.5rem) 13rem, oklch(0.82 0.15 70 / 0.22), transparent 38%);
+  transition: opacity 600ms var(--ease-out);
+}
+
+:root[data-theme='dark'] .ph__glow {
+  opacity: 0;
+}
+
+:root[data-theme='dark'] .ph__shade {
+  background:
+    linear-gradient(to right, oklch(0.16 0.035 258 / 0.7), transparent 70%),
+    linear-gradient(to bottom, oklch(0.16 0.035 258 / 0.7), transparent 35%),
+    linear-gradient(to top, oklch(0.16 0.035 258 / 0.6), transparent 45%);
+}
+
+@media (max-width: 40rem) {
+  .lamp {
+    top: 10.5rem;
+  }
+
+  .lamp__hint {
+    font-size: var(--step--1);
+  }
+}
+
+html:not(.js) .lamp {
+  display: none;
 }
