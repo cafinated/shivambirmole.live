@@ -1,0 +1,1 @@
+var e=()=>window.matchMedia(`(prefers-reduced-motion: reduce)`).matches,t=(e,t=0,n=1)=>Math.min(n,Math.max(t,e)),n=(e,t,n)=>e+(t-e)*n,r=e=>e<.5?4*e*e*e:1-(-2*e+2)**3/2,i=(e,n,r)=>t((e-n)/(r-n)),a=e=>new Promise(t=>e.then(()=>t())),o=e=>new Promise(t=>setTimeout(t,e));export{e as a,n as i,a as n,i as o,r,o as s,t};
