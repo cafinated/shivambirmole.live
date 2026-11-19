@@ -44,7 +44,13 @@ const ridge = (sx: number) =>
 
 // Obstacles between stops, themed to that part of the road. Never near a stop or on a ramp.
 const kinds = ['books', 'suitcase', 'cone', 'bug', 'suitcase', 'deadline', 'deadline', 'suitcase', 'rock', 'cone', 'papers'];
-const obstacles: { x: number; kind: string; y: number }[] = [];
+// Base hit box per kind (half width, height); each obstacle is then stretched a little,
+// so the road has short, tall and wide ones. All stay well under the jump height (about 130).
+const hitBase: Record<string, [number, number]> = {
+  books: [24, 38], suitcase: [26, 36], cone: [18, 40], bug: [22, 26], deadline: [38, 34], rock: [26, 32], papers: [24, 34],
+};
+const sizes: [number, number][] = [[1, 0.75], [1.15, 1.2], [0.85, 0.9], [1.25, 1.3], [0.9, 0.8], [1.2, 1.35], [1, 1.05], [1.3, 1.15], [0.8, 0.85], [1.2, 1.4], [1, 1]];
+const obstacles: { x: number; kind: string; y: number; sw: number; sh: number; hw: number; hh: number }[] = [];
 stops.slice(0, -1).forEach((s, i) => {
   const kind = kinds[i];
   const spots = i === 0 ? [0.45] : [0.28, 0.7];
@@ -53,7 +59,11 @@ stops.slice(0, -1).forEach((s, i) => {
     // Skip anything on or near a side-quest ramp, and keep every pair far enough apart to land between.
     const onRamp = sides.some((sx) => Math.abs(x - sx) > FLAT - 80 && Math.abs(x - sx) < FLAT + RAMP + 100);
     const tooClose = obstacles.some((o) => Math.abs(o.x - x) < 380);
-    if (!onRamp && !tooClose) obstacles.push({ x, kind, y: groundY(x) });
+    if (!onRamp && !tooClose) {
+      const [sw, sh] = sizes[obstacles.length % sizes.length];
+      const [bw, bh] = hitBase[kind];
+      obstacles.push({ x, kind, y: groundY(x), sw, sh, hw: Math.round(bw * sw), hh: Math.round(bh * sh) });
+    }
   }
 });
 ---
@@ -374,8 +384,11 @@ stops.slice(0, -1).forEach((s, i) => {
         <!-- Things in the way: black-and-yellow hazard stripes, so they read at speed -->
         {obstacles.map((o) => (
           <g class={`obs obs--${o.kind}`} transform={`translate(${o.x} ${o.y})`}>
-            <path class="j-warn" d="M0 -78l12 20h-24z" />
-            <text class="j-warn-t" x="0" y="-62" text-anchor="middle">!</text>
+            <g transform={`translate(0 ${-o.hh - 16})`}>
+              <path class="j-warn" d="M0 -20l12 20h-24z" />
+              <text class="j-warn-t" x="0" y="-4" text-anchor="middle">!</text>
+            </g>
+            <g transform={`scale(${o.sw} ${o.sh})`}>
             {o.kind === 'books' && <path class="j-haz" d="M-24 0v-14h48v14zM-20 -14v-12h42v12zM-22 -26v-14h40v14z" />}
             {o.kind === 'suitcase' && (
               <g>
@@ -399,9 +412,12 @@ stops.slice(0, -1).forEach((s, i) => {
             )}
             {o.kind === 'rock' && <path class="j-haz" d="M-28 0l6-26 18-12 22 8 10 30z" />}
             {o.kind === 'papers' && <path class="j-haz" d="M-26 0v-12h52v12zM-22 -12v-12h46v12zM-24 -24v-12h48v12z" />}
+            </g>
           </g>
         ))}
       </svg>
+
+      <canvas class="space" data-space aria-hidden="true"></canvas>
 
       <svg class="actor" data-actor viewBox="-90 -270 180 290" aria-hidden="true">
           <!-- Shivam. Feet at the origin; grows up as he runs. -->
@@ -429,6 +445,7 @@ stops.slice(0, -1).forEach((s, i) => {
       </article>
 
       <p class="jhud pen" aria-hidden="true"><span data-hud-stops>0</span> of {stops.length} stops · <span data-hud-trips>0</span> stumbles</p>
+      <p class="jhud jhud--space pen" data-hud-space aria-hidden="true" hidden><span data-ly>0</span> light-years · best <span data-best>0</span></p>
 
       <div class="jscreen" data-screen>
         <div class="jscreen__box">
@@ -437,11 +454,12 @@ stops.slice(0, -1).forEach((s, i) => {
             Press <kbd>Space</kbd> or tap to start. Jump over whatever is in the way.
           </p>
           <p class="jscreen__links" data-screen-links hidden>
-            <a class="jbtn" href="/future/">Let's build together</a>
+            <a class="jbtn" href="/future/" data-first>Let's build together</a>
             <a class="jbtn jbtn--ghost" href="/">Back to the home page</a>
+            <button class="jbtn jbtn--space" type="button" data-go-space>Keep running, into space ✦</button>
           </p>
           <p class="jscreen__again" data-screen-again hidden>
-            <button class="jlink" type="button" data-again>or run it again</button>
+            <button class="jlink" type="button" data-again>or run the journey again</button>
           </p>
         </div>
       </div>
@@ -484,7 +502,7 @@ stops.slice(0, -1).forEach((s, i) => {
 
 <script>
   type Stop = { key: string; side?: boolean; trip?: boolean; when: string; title: string; text: string; x: number };
-  type Obs = { x: number; kind: string; y: number };
+  type Obs = { x: number; kind: string; y: number; hw: number; hh: number };
   const J = (window as unknown as { __journey: { stops: Stop[]; WORLD: number; obstacles: Obs[]; sides: number[]; G: number; LIFT: number; RAMP: number; FLAT: number } }).__journey;
   const { stops, WORLD, obstacles, sides, G, LIFT, RAMP, FLAT } = J;
 
@@ -540,7 +558,7 @@ stops.slice(0, -1).forEach((s, i) => {
     books: [24, 38], suitcase: [26, 36], cone: [18, 40], bug: [22, 26], deadline: [38, 34], rock: [26, 32], papers: [24, 34],
   };
 
-  type State = 'ready' | 'run' | 'down' | 'done';
+  type State = 'ready' | 'run' | 'down' | 'done' | 'space' | 'lost';
   let state: State = 'ready';
   let x = START;
   let y = G;
@@ -568,11 +586,16 @@ stops.slice(0, -1).forEach((s, i) => {
     return base() * (1 - 0.5 * smooth(near));
   };
 
-  const say = (title: string, html: string, links = false) => {
+  const spaceBtn = $<HTMLButtonElement>('[data-go-space]');
+  const say = (title: string, html: string, links: false | 'done' | 'lost' = false) => {
     sTitle.textContent = title;
     sText.innerHTML = html;
     sLinks.hidden = !links;
     $<HTMLElement>('[data-screen-again]').hidden = !links;
+    spaceBtn.textContent = links === 'lost' ? 'Try space again ✦' : 'Keep running, into space ✦';
+    // After a crash in space, "try again" comes first; after the journey, building together does.
+    if (links === 'lost') sLinks.prepend(spaceBtn);
+    else sLinks.append(spaceBtn);
     screen.classList.add('is-on');
   };
 
@@ -610,23 +633,302 @@ stops.slice(0, -1).forEach((s, i) => {
     actor.style.transform = `translate3d(${snap((x - cam - 90) * k)}px, ${snap((y - 270) * k)}px, 0)`;
   };
 
+  // ---------- Space: an endless run once the journey is done ----------
+  const spaceCv = $<HTMLCanvasElement>('[data-space]');
+  const sx = spaceCv.getContext('2d')!;
+  const hudSpace = $<HTMLElement>('[data-hud-space]');
+  const lyEl = $<HTMLElement>('[data-ly]');
+  const bestEl = $<HTMLElement>('[data-best]');
+  let mode: 'journey' | 'space' = 'journey';
+  let dist = 0;
+  let tSpace = 0;
+  let warp = 0;
+  let best = 0;
+  try {
+    best = Number(localStorage.getItem('journey-best')) || 0;
+  } catch {}
+  bestEl.textContent = String(best);
+  type Rock = { s: number; w: number; h: number; kind: 'block' | 'tall' | 'double' };
+  let rocks: Rock[] = [];
+  let nextRock = 0;
+  const vSpace = () => Math.min(1250, 440 + tSpace * 14);
+  const lightYears = () => Math.floor(dist / 10);
+  const rand = (a: number, b: number) => a + Math.random() * (b - a);
+  const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
+
+  const starColors = ['#ffffff', '#cfe0ff', '#ffd6f0', '#fff1b8', '#b8fff2', '#e2d4ff'];
+  const layers = [
+    { f: 0.05, n: 160, r: [0.4, 1.1] },
+    { f: 0.14, n: 90, r: [0.8, 1.7] },
+    { f: 0.32, n: 45, r: [1.2, 2.4] },
+  ].map((l) => ({
+    ...l,
+    stars: Array.from({ length: l.n }, () => ({
+      x: Math.random(),
+      y: Math.random() * 0.78,
+      r: rand(l.r[0], l.r[1]),
+      c: pick(starColors),
+      tw: rand(0.8, 3),
+      ph: rand(0, 6.28),
+    })),
+  }));
+  const galaxies = Array.from({ length: 5 }, (_, i) => ({
+    x: i / 5 + rand(0, 0.12),
+    y: rand(0.08, 0.5),
+    size: rand(34, 80),
+    hue: pick([265, 300, 190, 330, 210]),
+    rot: rand(0, 6.28),
+    tilt: rand(0.35, 0.7),
+  }));
+  const nebulae = Array.from({ length: 6 }, (_, i) => ({
+    x: i / 6 + rand(0, 0.1),
+    y: rand(0.1, 0.65),
+    r: rand(140, 280),
+    c: pick(['120, 70, 255', '255, 70, 170', '40, 200, 220', '255, 150, 60', '160, 60, 220']),
+  }));
+  let comet: { x: number; y: number; life: number } | null = null;
+
+  const sizeSpace = () => {
+    const w = stage.clientWidth;
+    const h = stage.clientHeight;
+    const r = Math.min(2, dpr());
+    if (spaceCv.width !== Math.round(w * r) || spaceCv.height !== Math.round(h * r)) {
+      spaceCv.width = Math.round(w * r);
+      spaceCv.height = Math.round(h * r);
+    }
+    sx.setTransform(r, 0, 0, r, 0, 0);
+    return [w, h] as const;
+  };
+
+  const hazardRect = (x0: number, y0: number, w: number, h: number) => {
+    sx.save();
+    sx.shadowColor = 'rgba(245, 197, 24, 0.75)';
+    sx.shadowBlur = 16;
+    sx.fillStyle = '#f5c518';
+    sx.fillRect(x0, y0, w, h);
+    sx.shadowBlur = 0;
+    sx.beginPath();
+    sx.rect(x0, y0, w, h);
+    sx.clip();
+    sx.strokeStyle = '#111';
+    sx.lineWidth = 9 * k;
+    for (let i = -h; i < w + h; i += 18 * k) {
+      sx.beginPath();
+      sx.moveTo(x0 + i, y0 + h);
+      sx.lineTo(x0 + i + h, y0);
+      sx.stroke();
+    }
+    sx.restore();
+    sx.strokeStyle = '#111';
+    sx.lineWidth = 3;
+    sx.strokeRect(x0, y0, w, h);
+  };
+
+  const drawSpace = (now: number) => {
+    const [W, Hh] = sizeSpace();
+    const gy = G * k;
+    const px = W * 0.26;
+    const sky = sx.createLinearGradient(0, 0, 0, gy);
+    sky.addColorStop(0, '#03020a');
+    sky.addColorStop(0.7, '#0a0b26');
+    sky.addColorStop(1, '#1a1040');
+    sx.fillStyle = sky;
+    sx.fillRect(0, 0, W, Hh);
+
+    const wrap = W * 2.2;
+    const off = (f: number) => (((dist * k * f) % wrap) + wrap) % wrap;
+
+    // Nebulae
+    sx.globalCompositeOperation = 'lighter';
+    for (const n of nebulae) {
+      const xx = ((n.x * wrap - off(0.015)) % wrap + wrap) % wrap - W * 0.3;
+      const g = sx.createRadialGradient(xx, n.y * gy, 0, xx, n.y * gy, n.r);
+      g.addColorStop(0, `rgba(${n.c}, 0.22)`);
+      g.addColorStop(1, `rgba(${n.c}, 0)`);
+      sx.fillStyle = g;
+      sx.fillRect(xx - n.r, n.y * gy - n.r, n.r * 2, n.r * 2);
+    }
+    // Galaxies: two spiral arms of dots around a glowing core
+    for (const gx of galaxies) {
+      const xx = ((gx.x * wrap - off(0.03)) % wrap + wrap) % wrap - W * 0.3;
+      const yy = gx.y * gy;
+      if (xx < -120 || xx > W + 120) continue;
+      sx.save();
+      sx.translate(xx, yy);
+      sx.rotate(gx.rot + now / 40000);
+      sx.scale(1, gx.tilt);
+      const core = sx.createRadialGradient(0, 0, 0, 0, 0, gx.size * 0.5);
+      core.addColorStop(0, `hsla(${gx.hue}, 100%, 85%, 0.9)`);
+      core.addColorStop(1, `hsla(${gx.hue}, 100%, 60%, 0)`);
+      sx.fillStyle = core;
+      sx.beginPath();
+      sx.arc(0, 0, gx.size * 0.5, 0, 6.29);
+      sx.fill();
+      for (let arm = 0; arm < 2; arm++) {
+        for (let i = 0; i < 46; i++) {
+          const a = i * 0.22 + arm * Math.PI;
+          const r = (i / 46) * gx.size;
+          sx.fillStyle = `hsla(${gx.hue + i * 2}, 90%, 75%, ${0.7 - i / 80})`;
+          sx.beginPath();
+          sx.arc(Math.cos(a) * r, Math.sin(a) * r, 1.4 + (1 - i / 46) * 1.2, 0, 6.29);
+          sx.fill();
+        }
+      }
+      sx.restore();
+    }
+    sx.globalCompositeOperation = 'source-over';
+
+    // Stars, streaking during the warp in
+    for (const l of layers) {
+      const o = off(l.f);
+      for (const st of l.stars) {
+        const xx = ((st.x * wrap - o) % wrap + wrap) % wrap;
+        if (xx > W + 40) continue;
+        const yy = st.y * gy;
+        const a = still ? 0.9 : 0.55 + 0.45 * Math.sin((now / 1000) * st.tw + st.ph) ** 2;
+        sx.globalAlpha = a;
+        if (warp > 0.02 && !still) {
+          sx.strokeStyle = st.c;
+          sx.lineWidth = st.r;
+          sx.beginPath();
+          sx.moveTo(xx, yy);
+          sx.lineTo(xx + warp * 220 * l.f * 6, yy);
+          sx.stroke();
+        } else {
+          sx.fillStyle = st.c;
+          sx.beginPath();
+          sx.arc(xx, yy, st.r, 0, 6.29);
+          sx.fill();
+        }
+      }
+    }
+    sx.globalAlpha = 1;
+
+    // A comet now and then
+    if (!still) {
+      if (!comet && Math.random() < 0.006) comet = { x: rand(W * 0.4, W), y: rand(0, gy * 0.35), life: 1 };
+      if (comet) {
+        const tail = sx.createLinearGradient(comet.x, comet.y, comet.x + 120, comet.y - 50);
+        tail.addColorStop(0, `rgba(255, 255, 255, ${comet.life})`);
+        tail.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        sx.strokeStyle = tail;
+        sx.lineWidth = 2;
+        sx.beginPath();
+        sx.moveTo(comet.x, comet.y);
+        sx.lineTo(comet.x + 120, comet.y - 50);
+        sx.stroke();
+        comet.x -= 10;
+        comet.y += 4;
+        comet.life -= 0.015;
+        if (comet.life <= 0) comet = null;
+      }
+    }
+
+    // The road: a glowing line with dashes rushing past
+    const road = sx.createLinearGradient(0, 0, W, 0);
+    road.addColorStop(0, '#7b5cff');
+    road.addColorStop(0.5, '#ff4fa3');
+    road.addColorStop(1, '#2ee6d6');
+    sx.save();
+    sx.shadowColor = '#ff4fa3';
+    sx.shadowBlur = 18;
+    sx.strokeStyle = road;
+    sx.lineWidth = 4;
+    sx.beginPath();
+    sx.moveTo(0, gy);
+    sx.lineTo(W, gy);
+    sx.stroke();
+    sx.restore();
+    sx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+    sx.lineWidth = 2;
+    const dash = 60 * k;
+    for (let xx = -((dist * k) % dash); xx < W; xx += dash) {
+      sx.beginPath();
+      sx.moveTo(xx, gy + 26 * k);
+      sx.lineTo(xx + dash * 0.4, gy + 26 * k);
+      sx.stroke();
+    }
+
+    // What's in the way
+    for (const r of rocks) {
+      const left = px + (r.s - dist - r.w / 2) * k;
+      if (left > W || left + r.w * k < 0) continue;
+      if (r.kind === 'double') {
+        hazardRect(left, gy - r.h * k, (r.w / 2 - 3) * k, r.h * k);
+        hazardRect(left + (r.w / 2 + 3) * k, gy - r.h * k, (r.w / 2 - 3) * k, r.h * k);
+      } else hazardRect(left, gy - r.h * k, r.w * k, r.h * k);
+    }
+  };
+
+  const spawnRocks = () => {
+    const v = vSpace();
+    const ahead = stage.clientWidth / k + 200;
+    while (nextRock < dist + ahead) {
+      // Difficulty climbs over the first ~90 seconds: taller, wider blocks, more doubles, tighter gaps.
+      const diff = clamp(tSpace / 90);
+      const h = Math.round(rand(26, 42 + 40 * diff));
+      const double = diff > 0.25 && Math.random() < 0.15 + 0.3 * diff;
+      const w = Math.round(double ? rand(84, 96 + 30 * diff) : rand(28, 48 + 50 * diff));
+      rocks.push({ s: nextRock, w, h, kind: double ? 'double' : h > 60 ? 'tall' : 'block' });
+      // Always room to land and react before the next one, even at full speed.
+      const min = 0.92 * v + w + 70;
+      nextRock += rand(min, min * (1.9 - 0.7 * diff));
+    }
+    rocks = rocks.filter((r) => r.s > dist - 400);
+  };
+
+  const enterSpace = () => {
+    mode = 'space';
+    // Space is after the journey: always the grown-up, bearded version.
+    x = END;
+    root.classList.add('is-space', 'is-playing');
+    hudSpace.hidden = false;
+    card.classList.remove('is-on');
+    screen.classList.remove('is-on');
+    dist = 0;
+    tSpace = 0;
+    warp = 1;
+    rocks = [];
+    nextRock = 1200;
+    y = G;
+    vy = 0;
+    grounded = true;
+    fallT = 0;
+    state = 'space';
+  };
+
+  const leaveSpace = () => {
+    mode = 'journey';
+    root.classList.remove('is-space');
+    hudSpace.hidden = true;
+  };
+
+  const placeInSpace = () => {
+    const px = stage.clientWidth * 0.26;
+    actor.style.transform = `translate3d(${snap(px - 90 * k)}px, ${snap((y - 270) * k)}px, 0)`;
+  };
+
   const draw = () => {
     const g = 0.62 + 0.38 * growth(x);
-    const tilt = state === 'down' ? -78 * smooth(clamp(fallT / 0.35)) : 0;
+    const tilt = state === 'down' || state === 'lost' ? -78 * smooth(clamp(fallT / 0.35)) : 0;
     walker.setAttribute('transform', `rotate(${tilt}) scale(${g} ${g})`);
     beard.style.opacity = String(beardAt(x));
     beard.style.transform = `scale(1, ${0.4 + 0.6 * beardAt(x)})`;
     pack.style.opacity = packOn(x) ? '1' : '0';
-    const running = state === 'run' && grounded && !still;
+    const moving = state === 'run' || state === 'space';
+    const running = moving && grounded && !still;
     const sw = running ? Math.sin(phase) : 0;
-    const air = state === 'run' && !grounded;
+    const air = moving && !grounded;
     legF.setAttribute('transform', `rotate(${air ? -32 : sw * 30} 0 -62)`);
     legB.setAttribute('transform', `rotate(${air ? 22 : -sw * 30} 0 -62)`);
     armF.setAttribute('transform', `rotate(${air ? -120 : -sw * 34} 0 -128)`);
     armB.setAttribute('transform', `rotate(${air ? 40 : sw * 34} 0 -128)`);
     body.setAttribute('transform', `translate(0 ${running ? -Math.abs(Math.sin(phase)) * 5 : 0})`);
     fill.style.transform = `scaleX(${clamp((x - START) / (END - START))})`;
-    view();
+    if (mode === 'space') {
+      drawSpace(performance.now());
+      placeInSpace();
+    } else view();
   };
 
   const start = () => {
@@ -636,6 +938,7 @@ stops.slice(0, -1).forEach((s, i) => {
   };
 
   const restart = () => {
+    leaveSpace();
     x = START;
     y = G;
     vy = 0;
@@ -664,6 +967,7 @@ stops.slice(0, -1).forEach((s, i) => {
     if (state === 'ready') return start();
     if (state === 'down') return getUp();
     if (state === 'done') return restart();
+    if (state === 'lost') return enterSpace();
     if (grounded) {
       vy = -JUMP;
       grounded = false;
@@ -702,8 +1006,7 @@ stops.slice(0, -1).forEach((s, i) => {
 
       // Collisions
       for (const o of obstacles) {
-        const [hw, hh] = hit[o.kind];
-        if (Math.abs(x - o.x) < hw + 10 && y > o.y - hh + 4) {
+        if (Math.abs(x - o.x) < o.hw + 10 && y > o.y - o.hh + 4) {
           state = 'down';
           fallT = 0;
           falls += 1;
@@ -720,12 +1023,52 @@ stops.slice(0, -1).forEach((s, i) => {
         say(
           'You made it to now. Where next?',
           `All ${stops.length} stops, side quests included, with ${falls} ${falls === 1 ? 'stumble' : 'stumbles'} on the way. The next stretch of road is the one we could build together.`,
-          true,
+          'done',
         );
         // Put focus on the first choice so Enter goes straight there.
-        requestAnimationFrame(() => sLinks.querySelector<HTMLAnchorElement>('a')?.focus());
+        requestAnimationFrame(() => sLinks.querySelector<HTMLAnchorElement>('[data-first]')?.focus());
       }
-    } else if (state === 'down') {
+    } else if (state === 'space') {
+      const v = vSpace();
+      dist += v * dt;
+      tSpace += dt;
+      warp = Math.max(0, warp - dt * 0.7);
+      phase += v * dt * 0.05;
+      if (!grounded) {
+        vy += GRAV * dt;
+        y += vy * dt;
+        if (y >= G) {
+          y = G;
+          vy = 0;
+          grounded = true;
+        }
+      }
+      spawnRocks();
+      lyEl.textContent = String(lightYears());
+      for (const r of rocks) {
+        if (Math.abs(r.s - dist) < r.w / 2 + 10 && y > G - r.h + 4) {
+          state = 'lost';
+          fallT = 0;
+          root.classList.remove('is-playing');
+          const score = lightYears();
+          const record = score > best;
+          if (record) {
+            best = score;
+            bestEl.textContent = String(best);
+            try {
+              localStorage.setItem('journey-best', String(best));
+            } catch {}
+          }
+          say(
+            'Lost in space.',
+            `${score} light-years${record ? ', a new best' : ` (best ${best})`}. It only gets faster from here.`,
+            'lost',
+          );
+          requestAnimationFrame(() => spaceBtn.focus());
+          break;
+        }
+      }
+    } else if (state === 'down' || state === 'lost') {
       fallT += dt;
     }
 
@@ -733,7 +1076,8 @@ stops.slice(0, -1).forEach((s, i) => {
     requestAnimationFrame(tick);
   };
 
-  (window as unknown as { __jpos: () => { x: number; y: number; state: string } }).__jpos = () => ({ x, y, state });
+  (window as unknown as { __jpos: () => object; __rocks: () => object[] }).__jpos = () => ({ x, y, state, dist, v: mode === 'space' ? vSpace() : 0 });
+  (window as unknown as { __rocks: () => object[] }).__rocks = () => rocks;
 
   // ---------- Input ----------
   addEventListener('keydown', (e) => {
@@ -757,6 +1101,45 @@ stops.slice(0, -1).forEach((s, i) => {
     if (!(e as PointerEvent).pointerType) act();
   });
   $<HTMLButtonElement>('[data-again]').addEventListener('click', restart);
+  spaceBtn.addEventListener('click', enterSpace);
+
+  // ---------- Scatter the obstacles: a different road every visit ----------
+  // Each obstacle stays in its own stretch of the journey (so deadlines stay in Pune), never on a stop
+  // or a side-quest ramp, and always at least MIN_GAP from its neighbours so there is room to land.
+  {
+    const MIN_GAP = 430;
+    const groups = [...document.querySelectorAll<SVGGElement>('.obs')];
+    const segOf = (ox: number) => stops.findIndex((s, i) => i < stops.length - 1 && ox >= s.x && ox < stops[i + 1].x);
+    const allowed = (ox: number) =>
+      !stops.some((s) => Math.abs(ox - s.x) < 260) &&
+      !sides.some((sx) => Math.abs(ox - sx) > FLAT - 80 && Math.abs(ox - sx) < FLAT + RAMP + 100);
+    const placed: number[] = [];
+    obstacles.forEach((o, i) => {
+      const seg = segOf(o.x);
+      const a = stops[seg].x + 260;
+      const b = stops[seg + 1].x - 260;
+      let best: number | null = null;
+      for (let tries = 0; tries < 80; tries++) {
+        const cand = Math.round(a + Math.random() * (b - a));
+        if (allowed(cand) && placed.every((p) => Math.abs(p - cand) >= MIN_GAP)) {
+          best = cand;
+          break;
+        }
+      }
+      if (best === null) {
+        // No safe spot this time: leave this one out rather than crowd the road.
+        o.x = -1e6;
+        groups[i]?.setAttribute('display', 'none');
+        return;
+      }
+      placed.push(best);
+      o.x = best;
+      o.y = groundY(best);
+      groups[i]?.setAttribute('transform', `translate(${o.x} ${o.y})`);
+    });
+    for (let i = obstacles.length - 1; i >= 0; i--) if (obstacles[i].x < 0) obstacles.splice(i, 1);
+    obstacles.sort((p, q) => p.x - q.x);
+  }
 
   addEventListener('resize', () => {
     measure();
@@ -845,6 +1228,51 @@ stops.slice(0, -1).forEach((s, i) => {
     text-rendering: geometricPrecision;
   }
 
+  .space {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 900ms var(--ease-out);
+    pointer-events: none;
+  }
+
+  .world {
+    transition: opacity 600ms var(--ease-out);
+  }
+
+  .journey.is-space {
+    --j-paper: #070818;
+    --j-ink: #f3f1ea;
+    --j-soft: #aaa6cf;
+    transition: background-color 900ms var(--ease-out);
+  }
+
+  .journey.is-space .space {
+    opacity: 1;
+  }
+
+  .journey.is-space .world,
+  .journey.is-space .jcard,
+  .journey.is-space .jhud:not(.jhud--space) {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .jhud--space[hidden] {
+    display: none;
+  }
+
+  .jhud--space {
+    color: #f3f1ea;
+  }
+
+  .jbtn.jbtn--space {
+    background: linear-gradient(90deg, #5b3cff, #c42a86, #c9561a);
+    color: #fff;
+  }
+
   .actor {
     position: absolute;
     left: 0;
@@ -859,6 +1287,7 @@ stops.slice(0, -1).forEach((s, i) => {
     stroke: #111;
     stroke-width: 3;
     stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
   }
 
   .j-blk {
