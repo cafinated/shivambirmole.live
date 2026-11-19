@@ -10,17 +10,18 @@ The page it refuses: the portfolio of equal project cards with tech badges.
 
 ## Colour
 
-Stone and terracotta: warm, calm, editorial. Photographs are the only other colour on the site.
+Taken from the snow-summit photo that opens the site.
 
 | Token | Value | Use |
 |---|---|---|
-| `--paper` | `oklch(0.925 0.016 75)` (#EDE6DC) | Warm stone. The ground of light sections. |
-| `--ink` | `oklch(0.26 0.012 55)` (#2A2420) | Warm near-black. Text, rules, buttons, and the ground of dark sections. |
-| `--ink-soft` | `oklch(0.47 0.02 60)` | Warm grey-brown. Pen labels and secondary text. |
-| `--scrap` | `oklch(0.965 0.008 75)` | Light stone. Notes, chat messages, photo frames. |
-| `--red` | `oklch(0.5 0.13 40)` (terracotta) | The only accent. Cracks in the pipe, and what is unknown or unmeasured. |
+| `--paper` | `oklch(0.975 0.005 240)` | Ice white from the snow. The page background. |
+| `--ink` | `oklch(0.24 0.04 258)` | Dusk blue from the sky. Text, rules, buttons. |
+| `--ink-soft` | `oklch(0.45 0.03 255)` | Secondary text. |
+| `--red` | `oklch(0.56 0.16 42)` | Sunset orange. The accent: numbers, tools, what is not known yet. |
+| `--night-deep` | `oklch(0.21 0.04 258)` | Dusk blue for the dark sections (life track, footer, the Kuchu desktop). |
+| `--snow` | `oklch(0.95 0.012 80)` | Text inside dark sections. |
 
-Rules: terracotta is never used for links, hover or emphasis. No gradients, glass or cards.
+Dark sections re-define the tokens inside themselves (`.on-ink`, `.closing`, `.pal__desk`), so anything placed in them flips automatically.
 
 ## Type
 

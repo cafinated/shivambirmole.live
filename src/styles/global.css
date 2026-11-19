@@ -1,20 +1,21 @@
 /* Shivam Birmole — the flow sheet.
-   Dusk palette from the summit photo: night-blue ground, snow-white ink, a sunset accent. See DESIGN.md. */
+   From the summit photo: ice-white ground, dusk-blue ink, a sunset-orange accent. See DESIGN.md. */
 
 :root {
   /* Paper and two inks. Nothing else, except photographs. */
-  /* Dusk, taken from the summit photo: night-blue ground, snow-white ink, a sunset accent. */
-  --paper: oklch(0.21 0.04 258);
-  --paper-shade: oklch(0.26 0.045 258);
-  --night-deep: oklch(0.16 0.035 258);
-  --ink: oklch(0.94 0.012 80);
-  --ink-soft: oklch(0.77 0.02 250);
-  --rule: oklch(0.94 0.012 80 / 0.18);
-  --rule-faint: oklch(0.94 0.012 80 / 0.09);
-  --red: oklch(0.76 0.13 55);
-  --margin-line: oklch(0.76 0.13 55 / 0.5);
-  --olive: oklch(0.74 0.14 50);
-  --highlight: oklch(0.94 0.012 80 / 0.12);
+  /* From the summit photo: ice-white ground, dusk-blue ink, a sunset-orange accent. */
+  --paper: oklch(0.975 0.005 240);
+  --paper-shade: oklch(0.93 0.01 240);
+  --night-deep: oklch(0.21 0.04 258);
+  --snow: oklch(0.95 0.012 80);
+  --ink: oklch(0.24 0.04 258);
+  --ink-soft: oklch(0.45 0.03 255);
+  --rule: oklch(0.24 0.04 258 / 0.16);
+  --rule-faint: oklch(0.24 0.04 258 / 0.08);
+  --red: oklch(0.56 0.16 42);
+  --margin-line: oklch(0.7 0.16 50 / 0.5);
+  --olive: oklch(0.7 0.16 52);
+  --highlight: oklch(0.24 0.04 258 / 0.07);
 
   --font-display: 'Eczar', 'Iowan Old Style', Georgia, serif;
   --font-text: 'Anek Latin Variable', 'Anek Latin', system-ui, sans-serif;
@@ -257,7 +258,7 @@ a:hover {
 }
 
 .button:hover {
-  background: oklch(0.86 0.012 80);
+  background: oklch(0.17 0.04 258);
 }
 
 .button:active {

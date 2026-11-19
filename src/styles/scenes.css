@@ -1,12 +1,12 @@
 /* The interactive scenes: opening pile, product toys, life track, chalkboard, photo pile, dock.
-   Same world as global.css: night-blue ground, snow-white ink, sunset accent. */
+   Same world as global.css: ice-white ground, dusk-blue ink, sunset-orange accent. */
 
 :root {
-  --scrap: oklch(0.28 0.045 258);
-  --paper-soft: oklch(0.77 0.02 250);
-  --red-on-ink: oklch(0.78 0.12 55);
-  --red-line: oklch(0.74 0.14 50);
-  --shadow-ink: oklch(0 0 0 / 0.55);
+  --scrap: oklch(1 0 0);
+  --paper-soft: oklch(0.8 0.02 250);
+  --red-on-ink: oklch(0.78 0.13 55);
+  --red-line: oklch(0.7 0.16 52);
+  --shadow-ink: oklch(0.24 0.04 258 / 0.22);
   --step-5: clamp(2.75rem, 1.2rem + 7vw, 6rem);
 }
 
@@ -615,7 +615,7 @@
 }
 
 .sim__btn--solid:hover {
-  background: oklch(0.86 0.012 80);
+  background: oklch(0.17 0.04 258);
 }
 
 .sim__btn:active,
@@ -1721,11 +1721,20 @@ html.is-loading {
   }
 }
 
-/* ---------- Dusk palette: surfaces that stay dark, and what sits on them ---------- */
+/* ---------- Dark surfaces: dusk blue from the photo, with the tokens flipped inside ---------- */
 
 .on-ink,
-.closing {
-  background: var(--night-deep);
+.closing,
+.pal__desk {
+  --paper: var(--night-deep);
+  --ink: var(--snow);
+  --ink-soft: oklch(0.8 0.02 250);
+  --rule: oklch(0.95 0.012 80 / 0.18);
+  --rule-faint: oklch(0.95 0.012 80 / 0.09);
+  --red: oklch(0.78 0.13 55);
+  --highlight: oklch(0.95 0.012 80 / 0.1);
+  --scrap: oklch(0.28 0.045 258);
+  background: var(--paper);
   color: var(--ink);
 }
 
@@ -1745,12 +1754,11 @@ html.is-loading {
 
 .vote--for {
   background: var(--ink);
-  color: var(--night-deep);
+  color: var(--paper);
 }
 
-.pal__desk,
 .pal__window {
-  background-color: var(--night-deep);
+  background-color: var(--paper);
 }
 
 .pal__body,
@@ -1765,11 +1773,11 @@ html.is-loading {
 }
 
 .pal__eyes circle {
-  fill: var(--night-deep);
+  fill: var(--paper);
 }
 
 .pal__smile {
-  stroke: var(--night-deep);
+  stroke: var(--paper);
 }
 
 .pal__zzz {
@@ -1779,20 +1787,26 @@ html.is-loading {
 .pal .pal__bubble.pen,
 .pal__bubble {
   background: var(--ink);
-  color: var(--night-deep);
+  color: var(--paper);
 }
 
 .chalk__wipe:hover {
-  background: var(--ink);
+  background: var(--snow);
   color: var(--night-deep);
 }
 
-/* Photo frames and notes lift off the night with a faint edge instead of a shadow. */
+/* Photos and cards sit on the ice with a soft edge. */
 .photo img,
 .collage__item {
-  box-shadow: 0 0 0 1px oklch(0.94 0.012 80 / 0.08);
+  box-shadow: 0 0 0 1px oklch(0.24 0.04 258 / 0.08);
 }
 
+.project {
+  border-color: var(--rule);
+  box-shadow: 0 12px 28px -22px var(--shadow-ink);
+}
+
+/* The photo opening fades from dusk into the ice-white page, like dawn. */
 .ph__fade {
   background: linear-gradient(to bottom, transparent, var(--paper) 88%);
 }
