@@ -1,0 +1,130 @@
+---
+// Work experience on the home page. Each role is a row; open it to see the projects inside.
+// Facts come from Shivam's resume and brief. No client names, no invented results.
+import Arrow from '../Arrow.astro';
+
+const roles = [
+  {
+    when: '2022 to 2026',
+    where: 'Pune',
+    title: 'Associate, TresVista Analytics LLP',
+    team: 'Data Intelligence Group',
+    summary: 'Four years of data engineering and analytics for investment, banking and fund clients.',
+    href: '/work/data-engineering/',
+    open: true,
+    projects: [
+      {
+        name: 'Alternate-data pipelines for a pension fund',
+        what: 'Built and maintained the pipelines that brought alternate data from outside vendors into one place, so the deal team could make decisions on it. Designed the workflows to ingest, process and store it, and ran shorter studies alongside: vendor accuracy assessments and comparisons against real-world data.',
+        tools: 'PySpark · Airflow · Databricks · S3 · Python APIs',
+      },
+      {
+        name: 'Fraud and marketing analytics for a listed mobile bank',
+        what: "Built analytics and dashboards for the bank's fraud and marketing teams. Analysed survey data and trends to measure marketing impact, automated early-stage fraud detection, and regularly presented findings and recommendations to the company's executive team.",
+        tools: 'Power BI · SQL',
+      },
+      {
+        name: 'Fund-performance reporting for a management company',
+        what: 'Built the dashboard and the backend behind it to track fund performance and the underlying management companies. Designed the data-collection templates, wired them into SQL Server, and showed performance, projections and shortfalls in one place.',
+        tools: 'Python · Azure · SQL Server · Power BI',
+      },
+      {
+        name: "Automating the company's mentorship programme",
+        what: 'Led an internal project to run and measure the mentorship programme with less manual work. Python now sends the emails, collects the responses and even builds the PowerPoint reports, which gave the programme data to improve from.',
+        tools: 'Python',
+      },
+    ],
+    award: {
+      name: 'Shining Star Award',
+      why: 'For managing client interactions and leading the team through a demanding project under high client expectations.',
+    },
+  },
+  {
+    when: 'Ongoing',
+    where: 'Family hospital',
+    title: 'Hospital operations',
+    summary: 'Schedules, maintenance and money at my family\'s hospital, and the systems I built around them.',
+    href: '/work/hospital-operations/',
+    projects: [
+      {
+        name: 'Duty schedule and patient handoffs',
+        what: 'Interviewed patients and staff first, then redesigned the duty schedule to cut clashes and reworked how patients move between steps and how staff hand over.',
+        tools: 'Interviews · process design',
+      },
+      {
+        name: 'Maintenance and finance tracking',
+        what: 'Built a system around two gaps that kept coming up: maintenance that was not tracked consistently, and finances that were hard to follow.',
+        tools: 'Operations systems',
+      },
+      {
+        name: "The hospital's website",
+        what: 'Designed and built the hospital website.',
+        tools: 'Web',
+      },
+    ],
+  },
+  {
+    when: '2018',
+    where: 'Kankavli',
+    title: 'Café 101',
+    summary: 'A small café I started and ran after school, with my own money. Where it started.',
+    href: '/work/cafe-101/',
+    projects: [],
+  },
+];
+---
+
+<section class="exp" id="experience" aria-labelledby="exp-title">
+  <div class="sheet">
+    <p class="pen exp__kick" data-reveal>02 · work experience</p>
+    <h2 class="exp__title" id="exp-title" data-reveal>The work behind the products.</h2>
+    <p class="exp__intro" data-reveal>Open a role to see what I actually did there.</p>
+
+    <ol class="roles">
+      {
+        roles.map((r) => (
+          <li class="role" data-reveal>
+            <details class="role__box" open={r.open}>
+              <summary class="role__head">
+                <span class="role__when pen">{r.when}</span>
+                <span class="role__main">
+                  <span class="role__title">{r.title}</span>
+                  <span class="role__sum">{r.summary}</span>
+                </span>
+                <span class="role__toggle" aria-hidden="true" />
+              </summary>
+              <div class="role__body">
+                {r.team && (
+                  <p class="role__team">
+                    {r.team}, {r.where}
+                  </p>
+                )}
+                {r.projects.length > 0 && (
+                  <ul class="projects">
+                    {r.projects.map((p) => (
+                      <li class="project">
+                        <h3>{p.name}</h3>
+                        <p>{p.what}</p>
+                        <p class="project__tools">{p.tools}</p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {r.award && (
+                  <p class="role__award">
+                    <span class="pen">award</span>
+                    <strong>{r.award.name}.</strong> {r.award.why}
+                  </p>
+                )}
+                <a class="go" href={r.href}>
+                  The full story <Arrow />
+                </a>
+              </div>
+            </details>
+          </li>
+        ))
+      }
+    </ol>
+    <p class="back"><a href="#paths">↑ Back to the paths</a></p>
+  </div>
+</section>

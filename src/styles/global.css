@@ -65,7 +65,8 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  scroll-padding-top: 2rem;
+  scroll-padding-top: 4.5rem;
+  scroll-behavior: smooth;
   scrollbar-color: var(--ink) var(--paper-shade);
 }
 
@@ -1289,6 +1290,10 @@ html:not(.js) .flow-toggle__hint {
 
   @view-transition {
     navigation: none;
+  }
+
+  html {
+    scroll-behavior: auto;
   }
 }
 

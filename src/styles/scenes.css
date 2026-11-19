@@ -1778,3 +1778,361 @@ html.is-loading {
 .ph__fade {
   background: linear-gradient(to bottom, transparent, var(--paper) 88%);
 }
+
+/* ---------- Path chooser ---------- */
+
+.paths {
+  padding-block: var(--space-8);
+}
+
+.paths__title {
+  font-size: var(--step-4);
+  max-width: 14ch;
+}
+
+.paths__list {
+  list-style: none;
+  margin: var(--space-6) 0 0;
+  padding: 0;
+  border-top: 1px solid var(--rule);
+}
+
+.paths__list li {
+  border-bottom: 1px solid var(--rule);
+}
+
+.path {
+  position: relative;
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  grid-template-areas:
+    'n title go'
+    'n line go';
+  gap: 0.25rem var(--space-4);
+  align-items: center;
+  padding: var(--space-5) var(--space-2);
+  text-decoration: none;
+  isolation: isolate;
+}
+
+/* A sunset wash sweeps in from the left on hover and focus. */
+.path::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, oklch(0.74 0.14 50 / 0.16), transparent 80%);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 500ms var(--ease-out);
+}
+
+.path:hover::before,
+.path:focus-visible::before {
+  transform: scaleX(1);
+}
+
+.path__n {
+  grid-area: n;
+  align-self: start;
+  padding-top: 0.5rem;
+  font-family: var(--font-pen);
+  font-size: var(--step-1);
+  color: var(--red);
+}
+
+.path__title {
+  grid-area: title;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--step-3);
+  line-height: 1.05;
+  transition: transform 400ms var(--ease-out);
+}
+
+.path__line {
+  grid-area: line;
+  color: var(--ink-soft);
+  max-width: 52ch;
+}
+
+.path__go {
+  grid-area: go;
+  color: var(--ink-soft);
+  transition: transform 400ms var(--ease-out), color 200ms var(--ease-out);
+}
+
+.path__go svg {
+  width: clamp(2rem, 4vw, 3.5rem);
+  height: auto;
+}
+
+.path:hover .path__title,
+.path:focus-visible .path__title {
+  transform: translateX(10px);
+}
+
+.path:hover .path__go,
+.path:focus-visible .path__go {
+  transform: translateX(8px);
+  color: var(--red);
+}
+
+@media (max-width: 40rem) {
+  .path {
+    grid-template-columns: 2rem minmax(0, 1fr);
+    grid-template-areas:
+      'n title'
+      'n line';
+  }
+
+  .path__go {
+    display: none;
+  }
+}
+
+/* ---------- Shared section heads, back links ---------- */
+
+.exp__kick {
+  font-size: var(--step-1);
+  color: var(--red);
+}
+
+.exp__title {
+  margin-top: var(--space-2);
+  font-size: var(--step-4);
+  max-width: 16ch;
+}
+
+.exp__intro {
+  margin-top: var(--space-4);
+  max-width: 52ch;
+  color: var(--ink-soft);
+}
+
+.back {
+  margin-top: var(--space-6);
+}
+
+.back a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  text-decoration-color: transparent;
+}
+
+.back a:hover {
+  color: var(--ink);
+  text-decoration-color: currentColor;
+}
+
+/* ---------- Experience ---------- */
+
+.exp,
+.edu,
+.together {
+  padding-block: var(--space-8) 0;
+}
+
+.roles {
+  list-style: none;
+  margin: var(--space-6) 0 0;
+  padding: 0;
+  border-top: 2px solid var(--ink);
+}
+
+.role {
+  border-bottom: 1px solid var(--rule);
+}
+
+.role__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2) var(--space-5);
+  align-items: start;
+  padding-block: var(--space-5);
+  cursor: pointer;
+  list-style: none;
+}
+
+.role__head::-webkit-details-marker {
+  display: none;
+}
+
+.role__when {
+  grid-column: 1 / -1;
+  color: var(--ink-soft);
+  font-size: var(--step-0);
+}
+
+.role__main {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.role__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--step-2);
+  line-height: 1.1;
+}
+
+.role__sum {
+  color: var(--ink-soft);
+  max-width: 56ch;
+}
+
+.role__toggle {
+  position: relative;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  transition: background-color 200ms var(--ease-out), transform 400ms var(--ease-out);
+}
+
+.role__toggle::before,
+.role__toggle::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0.9rem;
+  height: 2px;
+  background: var(--ink);
+  transform: translate(-50%, -50%);
+}
+
+.role__toggle::after {
+  transform: translate(-50%, -50%) rotate(90deg);
+  transition: transform 300ms var(--ease-out);
+}
+
+.role__box[open] .role__toggle::after {
+  transform: translate(-50%, -50%) rotate(0deg);
+}
+
+.role__head:hover .role__toggle {
+  background: var(--highlight);
+}
+
+.role__head:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 4px;
+}
+
+@media (min-width: 60rem) {
+  .role__head {
+    grid-template-columns: 11rem minmax(0, 1fr) auto;
+  }
+
+  .role__when {
+    grid-column: auto;
+    padding-top: 0.35rem;
+  }
+
+  .role__body {
+    margin-left: calc(11rem + var(--space-5));
+  }
+}
+
+.role__body {
+  padding-bottom: var(--space-6);
+}
+
+.role__team {
+  font-family: var(--font-pen);
+  font-size: var(--step-1);
+  color: var(--ink-soft);
+}
+
+.projects {
+  list-style: none;
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-4);
+}
+
+@media (min-width: 48rem) {
+  .projects {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.project {
+  padding: var(--space-5);
+  background: var(--scrap);
+  border-radius: 6px;
+  border: 1px solid oklch(0.94 0.012 80 / 0.06);
+}
+
+.project h3 {
+  font-size: var(--step-1);
+  line-height: 1.2;
+}
+
+.project p {
+  margin-top: var(--space-3);
+  color: var(--ink-soft);
+  font-size: 1.0625rem;
+}
+
+.project .project__tools {
+  margin-top: var(--space-4);
+  font-family: var(--font-pen);
+  font-size: var(--step-0);
+  color: var(--red);
+}
+
+.role__award {
+  margin-top: var(--space-5);
+  max-width: 62ch;
+}
+
+.role__award .pen {
+  display: inline-block;
+  margin-right: var(--space-2);
+  color: var(--red);
+  font-size: var(--step-1);
+}
+
+.role__body .go {
+  margin-top: var(--space-4);
+}
+
+/* ---------- Education and Build together ---------- */
+
+.edu__list {
+  max-width: 52rem;
+}
+
+.edu__more {
+  margin-top: var(--space-4);
+}
+
+.together__areas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  list-style: none;
+  margin: var(--space-6) 0 0;
+  padding: 0;
+}
+
+.together__areas span {
+  display: inline-block;
+  padding: var(--space-3) var(--space-6);
+  border: 1px solid var(--red);
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--step-2);
+  color: var(--red);
+}
+
+.together__cta {
+  margin-top: var(--space-5);
+}

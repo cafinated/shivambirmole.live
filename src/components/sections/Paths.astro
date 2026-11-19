@@ -1,0 +1,50 @@
+---
+// The fork after the pipe scene: pick where to start. Each choice jumps to its section on this page.
+import Arrow from '../Arrow.astro';
+
+const paths = [
+  { n: '01', href: '#products', title: "Products I've built", line: 'MedDraft, Kuchu Puchu and MU Central. You can play with all three.' },
+  { n: '02', href: '#experience', title: 'Work experience', line: 'Four years at TresVista, a family hospital, and where it started.' },
+  { n: '03', href: '#education', title: 'Education', line: "Masters' Union, NMIMS, a Databricks certification, and the debate society." },
+  { n: '04', href: '#together', title: 'Build together', line: 'Healthcare, tech and travel, or just a good brainstorm.' },
+];
+---
+
+<section class="paths" id="paths" aria-labelledby="paths-title">
+  <div class="sheet">
+    <h2 class="paths__title" id="paths-title" data-reveal>Where do you want to start?</h2>
+    <ol class="paths__list" data-paths>
+      {
+        paths.map((p) => (
+          <li>
+            <a class="path" href={p.href}>
+              <span class="path__n">{p.n}</span>
+              <span class="path__title">{p.title}</span>
+              <span class="path__line">{p.line}</span>
+              <span class="path__go" aria-hidden="true">
+                <Arrow long />
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<script>
+  import { animate, inView, stagger } from 'motion';
+
+  const list = document.querySelector<HTMLElement>('[data-paths]');
+  if (list && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const rows = list.querySelectorAll<HTMLElement>('.path');
+    rows.forEach((r) => (r.style.opacity = '0'));
+    inView(
+      list,
+      () => {
+        animate(rows, { opacity: [0, 1], x: [-30, 0] }, { duration: 0.8, delay: stagger(0.09), ease: [0.16, 1, 0.3, 1] });
+      },
+      { amount: 0.2 },
+    );
+  }
+</script>

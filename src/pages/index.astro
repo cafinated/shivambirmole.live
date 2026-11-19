@@ -5,7 +5,9 @@ import Arrow from '../components/Arrow.astro';
 import Hero from '../components/scenes/Hero.astro';
 import PhotoHero from '../components/scenes/PhotoHero.astro';
 import ProductScene from '../components/scenes/ProductScene.astro';
-import LifeTrack from '../components/scenes/LifeTrack.astro';
+import Paths from '../components/sections/Paths.astro';
+import Experience from '../components/sections/Experience.astro';
+import EducationTogether from '../components/sections/EducationTogether.astro';
 import PhotoPile from '../components/scenes/PhotoPile.astro';
 import MedDraftDemo from '../components/toys/MedDraftDemo.astro';
 import KuchuToy from '../components/toys/KuchuToy.astro';
@@ -23,9 +25,11 @@ const toys: Record<string, any> = { meddraft: MedDraftDemo, kuchu: KuchuToy, cen
 >
   <PhotoHero />
   <Hero />
+  <Paths />
 
   <section class="bridge" id="products">
     <div class="sheet">
+      <p class="pen exp__kick" data-reveal>01 · products</p>
       <p class="bridge__text" data-reveal>
         I'm Shivam Birmole. I think like a founder: find a problem worth fixing, then take it all the way to something
         people can use. Four years as a data engineer taught me to build things people can trust, and my family's
@@ -50,7 +54,10 @@ const toys: Record<string, any> = { meddraft: MedDraftDemo, kuchu: KuchuToy, cen
     })
   }
 
-  <LifeTrack />
+  <div class="sheet"><p class="back"><a href="#paths">↑ Back to the paths</a></p></div>
+
+  <Experience />
+  <EducationTogether />
 
   <section class="away" aria-labelledby="away-title">
     <div class="sheet">

@@ -23,7 +23,9 @@ evidence:
     - Built Databricks ingestion and transformation workflows.
     - Built Power BI dashboards for fraud, marketing and fund teams.
     - Automated early-stage fraud-detection workflows.
-    - Presented recommendations to stakeholders.
+    - Presented findings and recommendations to a client's executive team.
+    - Led the automation of the company's mentorship programme.
+    - Received the Shining Star Award.
   supports:
     - Investment data for analysis and deal evaluation.
     - Fraud and marketing analytics for a banking team.
@@ -44,6 +46,14 @@ A fraud team needs to see a pattern early, and a marketing team needs to know wh
 ## Fund performance
 
 Fund reporting depends on numbers collected from many people in many formats. I built data-collection templates wired into SQL Server, the backend behind them, and Power BI dashboards on projections, shortfalls and performance, using Python, Azure and SQL.
+
+## The mentorship programme
+
+Inside the company, I led a project to run and measure the mentorship programme with less manual work. Python sends the emails, collects the responses and builds the PowerPoint reports, which gave the programme data to improve from.
+
+## Shining Star Award
+
+I received the Shining Star Award for managing client interactions and leading the team through a demanding project under high client expectations.
 
 ## What carried over
 
