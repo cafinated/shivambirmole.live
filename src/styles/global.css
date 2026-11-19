@@ -1,18 +1,20 @@
 /* Shivam Birmole — the flow sheet.
-   Sage paper, green ink and a red pen. See DESIGN.md. */
+   Dusk palette from the summit photo: night-blue ground, snow-white ink, a sunset accent. See DESIGN.md. */
 
 :root {
   /* Paper and two inks. Nothing else, except photographs. */
-  --paper: oklch(0.925 0.016 75);
-  --paper-shade: oklch(0.89 0.02 75);
-  --ink: oklch(0.26 0.012 55);
-  --ink-soft: oklch(0.47 0.02 60);
-  --rule: oklch(0.26 0.012 55 / 0.24);
-  --rule-faint: oklch(0.26 0.012 55 / 0.12);
-  --red: oklch(0.5 0.13 40);
-  --margin-line: oklch(0.58 0.2 25 / 0.6);
-  --olive: oklch(0.56 0.13 40);
-  --highlight: oklch(0.26 0.012 55 / 0.14);
+  /* Dusk, taken from the summit photo: night-blue ground, snow-white ink, a sunset accent. */
+  --paper: oklch(0.21 0.04 258);
+  --paper-shade: oklch(0.26 0.045 258);
+  --night-deep: oklch(0.16 0.035 258);
+  --ink: oklch(0.94 0.012 80);
+  --ink-soft: oklch(0.77 0.02 250);
+  --rule: oklch(0.94 0.012 80 / 0.18);
+  --rule-faint: oklch(0.94 0.012 80 / 0.09);
+  --red: oklch(0.76 0.13 55);
+  --margin-line: oklch(0.76 0.13 55 / 0.5);
+  --olive: oklch(0.74 0.14 50);
+  --highlight: oklch(0.94 0.012 80 / 0.12);
 
   --font-display: 'Eczar', 'Iowan Old Style', Georgia, serif;
   --font-text: 'Anek Latin Variable', 'Anek Latin', system-ui, sans-serif;
@@ -254,7 +256,7 @@ a:hover {
 }
 
 .button:hover {
-  background: oklch(0.2 0.012 55);
+  background: oklch(0.86 0.012 80);
 }
 
 .button:active {
@@ -920,7 +922,7 @@ html:not(.js) .flow-toggle__hint {
 .ledger .is-open li {
   font-family: var(--font-pen);
   font-size: 1.1875rem;
-  border-bottom-color: oklch(0.5 0.13 40 / 0.25);
+  border-bottom-color: oklch(0.76 0.13 55 / 0.3);
 }
 
 @media (min-width: 48rem) {
@@ -1268,7 +1270,7 @@ html:not(.js) .flow-toggle__hint {
 .closing__small {
   margin-top: var(--space-7);
   padding-top: var(--space-4);
-  border-top: 1px solid oklch(0.925 0.016 75 / 0.3);
+  border-top: 1px solid oklch(0.94 0.012 80 / 0.3);
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
